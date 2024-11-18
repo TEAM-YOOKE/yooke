@@ -1,0 +1,10 @@
+.confetti-wrapper {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  pointer-events: none !important; /* Allow interactions to pass through */
+  z-index: 9999 !important; /* Ensure it is on top of other elements */
+  will-change: transform, opacity; /* Optimize performance */
+}
