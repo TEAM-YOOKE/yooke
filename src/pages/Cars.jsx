@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { RECURRING_RIDES } from "../constants";
 import {
   Box,
   Button,
@@ -8,9 +9,10 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import CarCard from "../components/CarCard";
 
 function Cars() {
-  const [cars, setCars] = useState([]);
+  const [cars, setCars] = useState(RECURRING_RIDES);
   const [form, setForm] = useState({
     plate: "",
     model: "",
@@ -54,30 +56,13 @@ function Cars() {
             </Button>
           </Box>
           {cars.map((car, index) => (
-            <Card key={index} sx={{ mb: 2 }}>
-              <CardContent>
-                <Typography variant="body1">
-                  <strong>Plate:</strong> {car.plate}
-                </Typography>
-                <Typography variant="body1">
-                  <strong>Model:</strong> {car.model}
-                </Typography>
-                <Typography variant="body1">
-                  <strong>Driver Name:</strong> {car.driverName}
-                </Typography>
-                <Typography variant="body1">
-                  <strong>Driver Phone:</strong> {car.driverPhone}
-                </Typography>
-              </CardContent>
-            </Card>
+            <CarCard key={index} car={car} />
           ))}
         </Grid>
 
         {/* Add Car Form */}
         <Grid item xs={12} md={6}>
-          <Typography variant="h6" mb={2}>
-            
-          </Typography>
+          <Typography variant="h6" mb={2}></Typography>
           <Box display="flex" flexDirection="column" gap={2}>
             <TextField
               label="Plate"
