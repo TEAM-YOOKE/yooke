@@ -166,7 +166,7 @@ function Admin() {
           }
           {
             tabValue === 3 && (
-              <RecurringRides searchQuery={searchQuery} />
+              <RecurringRides/>
             )
           }
           {

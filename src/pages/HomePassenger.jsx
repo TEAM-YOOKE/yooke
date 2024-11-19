@@ -1,13 +1,15 @@
 import * as React from "react";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { TimePicker } from "@mui/x-date-pickers/TimePicker";
+// import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+// import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+// import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import { Box, Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useState, useContext } from "react";
-import SelectLocation from "../components/SelectLocation";
-import { BookingCards } from "../components/BookingCards";
+// import SelectLocation from "../components/SelectLocation";
+// import { BookingCards } from "../components/BookingCards";
 import { LanguageContext } from "../helpers/LanguageContext";
+import TextField from '@mui/material/TextField';
+import Typography from "@mui/material/Typography";
 
 function HomePassenger() {
   const navigate = useNavigate();
@@ -31,7 +33,7 @@ function HomePassenger() {
 
   return (
     <Box sx={{ padding: "0 24px" }}>
-      <h1
+      {/* <h1
         className="h2"
         style={{
           paddingTop: "47px",
@@ -116,16 +118,48 @@ function HomePassenger() {
       <BookingCards
         selectedSeats={selectedSeats}
         setSelectedSeats={setSelectedSeats}
+      /> */}
+
+      
+    <Typography
+    
+    sx={{
+      fontWeight: '400', // Bold styling for the text
+      color: '#333',       // Dark gray color
+      marginBottom: '8px', // Margin below the Typography
+      width: "369px",
+      height: "96px",
+      font: "jost"
+    }} 
+
+    >
+      
+     As an employee of XYZ company, a feet of cars will take care of your transportation. Please them know where they can pick you up
+    </Typography>
+
+      <Box paddingTop={3}>
+      <TextField id="outlined-basic" label="pickup location" variant="outlined" 
+      fullWidth
+      sx={{ 
+      height: "24px", 
+      width: "114",
+      font: "jost",
+      fontWeight: "400"
+      
+      }}
+       value="Accra"
       />
+      </Box>
 
       <Button
         disableElevation
         variant="contained"
         fullWidth
         type="button"
-        disabled={!isSearchEnabled}
+        // disabled={!isSearchEnabled}
         sx={{
-          height: "47px",
+          height: "48px",
+        
           textTransform: "none",
           boxShadow: "none",
           borderRadius: "9px",
