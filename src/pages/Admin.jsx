@@ -18,6 +18,8 @@ import { useNavigate } from "react-router-dom";
 import AdminUsersList from "./AdminUsersList";
 import AdminAddNew from "./AdminAddNew";
 import WaitingList from "./WaitingList";
+import RecurringRides from "./RecurringRides";
+import Calendar from "./Calendar";
 
 function Admin() {
   const [open, setOpen] = useState(false);
@@ -109,6 +111,9 @@ function Admin() {
             <Tabs value={tabValue} onChange={handleTabChange}>
               <Tab label="Accounts" />
               <Tab label="Waiting List" />
+              <Tab label="Cars" />
+              <Tab label="Recurring Rides" />
+              <Tab label="Calendar" />
             </Tabs>
           </Box>
 
@@ -138,7 +143,7 @@ function Admin() {
             overflowY: "auto",
           }}
         >
-          {tabValue === 0 ? (
+          {tabValue === 0 && (
             <>
               <FilterChips
                 selectedFilter={selectedFilter}
@@ -149,9 +154,24 @@ function Admin() {
                 accountType={selectedFilter}
               />
             </>
-          ) : (
+          )}
+          {tabValue === 1 &&  (
             <WaitingList searchQuery={searchQuery} />
           )}
+          {
+            tabValue === 2 && (
+              <Cars />
+            )
+          }
+          {
+            tabValue === 3 && (
+              <RecurringRides searchQuery={searchQuery} />
+            )
+          }
+          {
+            tabValue === 4 && 
+              <Calendar searchQuery={searchQuery} />
+          }
         </Box>
         <AdminAddNew open={open} handleClose={handleClose} />
       </Box>
