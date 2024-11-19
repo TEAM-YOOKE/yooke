@@ -20,6 +20,7 @@ import AdminAddNew from "./AdminAddNew";
 import WaitingList from "./WaitingList";
 import RecurringRides from "./RecurringRides";
 import Calendar from "./Calendar";
+import Cars from "./Cars";
 
 function Admin() {
   const [open, setOpen] = useState(false);
