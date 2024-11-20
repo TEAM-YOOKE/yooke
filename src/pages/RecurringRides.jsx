@@ -1,10 +1,35 @@
-import React from "react";
+import React, { useState } from "react";
 import { Box, Button, Typography, TextField, Chip, Grid } from "@mui/material";
 import CarCard from "../components/CarCard";
-import { RECURRING_RIDES } from "../constants";
+import { PEOPLE, RECURRING_RIDES } from "../constants";
 import Grid2 from "@mui/material/Unstable_Grid2";
+import Autocomplete from "@mui/material/Autocomplete";
 
 const RecurringRides = () => {
+  const [selectedCar, setSelectedCar] = useState({});
+  const [selectedPerson, setSelectedPerson] = useState({});
+
+  const handleCarSelect = (car) => {
+    console.log(car);
+    setSelectedCar(car);
+  };
+
+  const handleAddPersonToCar = (e) => {
+    e.preventDefault();
+    console.log(selectedCar);
+    console.log(selectedPerson);
+
+    // Update the selectedCar state immutably
+    setSelectedCar((prev) => {
+
+      prev= {
+        ...prev,
+        passengers: [...(prev.passengers || []), selectedPerson],
+      };
+      return prev
+    });
+  };
+
   return (
     <Grid2 container p={2}>
       {/* Left Section */}
@@ -30,23 +55,34 @@ const RecurringRides = () => {
           }}
         >
           {RECURRING_RIDES.map((car, index) => (
-            <CarCard car={car} key={index} />
+            <Box
+              key={index}
+              cursor="pointer"
+              onClick={() => handleCarSelect(car)}
+            >
+              <CarCard car={car} />
+            </Box>
           ))}
         </Box>
       </Grid2>
 
       {/* Right Section */}
       <Grid p={8}>
-        <Box>
+        <Box component="form" onSubmit={handleAddPersonToCar}>
           <Typography variant="h6">
-            Rides for car with model: <b>xxx</b> and driver <b>xxx</b>
+            Rides for car with model: <b>{selectedCar.model || "xxx"}</b> and
+            driver <b>{selectedCar.driverName || "xxx"}</b>
           </Typography>
           <Box sx={{ display: "flex", gap: 4 }}>
-            <TextField
-              fullWidth
-              variant="outlined"
-              placeholder="Select person"
-              sx={{ marginBottom: 2 }}
+            <Autocomplete
+              disablePortal
+              options={PEOPLE}
+              getOptionLabel={(option) => option.name}
+              onChange={(event, newValue) => setSelectedPerson(newValue)}
+              sx={{ width: 300 }}
+              renderInput={(params) => (
+                <TextField name="person" {...params} label="Select Person" />
+              )}
             />
 
             <Button
@@ -59,6 +95,7 @@ const RecurringRides = () => {
                 borderRadius: "9px",
                 marginBottom: "16px",
               }}
+              type="submit"
             >
               Add to this ride
             </Button>
@@ -67,20 +104,24 @@ const RecurringRides = () => {
 
         {/* Selected People */}
         <Box sx={{ display: "flex", gap: 1 }}>
-          {["Person 1", "Person 2", "Person 3", "Person 4"].map(
-            (person, index) => (
-              <Chip
-                key={index}
-                label={person}
-                onDelete={() => {}}
-                sx={{
-                  backgroundColor: "#e9f5f9",
-                  color: "#333",
-                  fontWeight: "bold",
-                }}
-              />
-            )
-          )}
+          {selectedCar?.passengers?.map((passenger, index) => (
+            <Chip
+              key={index}
+              label={passenger.name}
+              onDelete={() => {
+                // Optional: Handle passenger deletion
+                setSelectedCar((prev) => ({
+                  ...prev,
+                  passengers: prev.passengers.filter((_, i) => i !== index),
+                }));
+              }}
+              sx={{
+                backgroundColor: "#e9f5f9",
+                color: "#333",
+                fontWeight: "bold",
+              }}
+            />
+          ))}
         </Box>
 
         {/* Additional Information */}
