@@ -12,6 +12,7 @@ const CarCard = ({ car }) => {
         backgroundColor: "#f0fbfb",
         boxShadow: 3,
         padding: 1,
+        cursor: "pointer",
 
         // margin: "auto",
         // "&:hover": {
