@@ -129,6 +129,7 @@ const RecurringRides = () => {
       fetchCars();
       fetchPassengers();
     } catch (error) {
+      console.error("Error adding person to car:", error);
     } finally {
       setAddLoading(false);
     }
@@ -191,7 +192,7 @@ const RecurringRides = () => {
               }
               disablePortal
               options={passengers ?? []}
-              getOptionLabel={(option) => option.email}
+              getOptionLabel={(option) => option.email + " " + (option?.pickUpLocation || "")}
               onChange={(event, newValue) => setSelectedPerson(newValue)}
               sx={{ width: 300 }}
               renderInput={(params) => (
@@ -217,11 +218,11 @@ const RecurringRides = () => {
         </Box>
 
         {/* Selected People */}
-        <Box sx={{ display: "flex", gap: 1 }}>
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
           {selectedCar?.passengers?.map((passenger, index) => (
             <Chip
               key={index}
-              label={passenger.email}
+              label={passenger}
               onDelete={() => {
                 // Optional: Handle passenger deletion
                 setSelectedCar((prev) => ({
