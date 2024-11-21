@@ -10,7 +10,7 @@ import CarCard from "../components/CarCard";
 import { PEOPLE, RECURRING_RIDES } from "../constants";
 import PeopleWithoutRidesCard from "../components/PeopleWithoutRidesCard";
 const Calendar = () => {
-  const [value, setValue] = React.useState(dayjs("2024-11-20"));
+  const [value, setValue] = React.useState(dayjs("2024-11-21"));
 
   const handleCarChange = (event, newValue) => {
     console.log(newValue);
