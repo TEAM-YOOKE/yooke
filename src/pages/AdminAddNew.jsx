@@ -78,6 +78,8 @@ const AdminAddNew = ({ open, handleClose }) => {
           accountType,
           initialPassword,
           createdAt: new Date(),
+          assignedCar: null,
+          pickUpLocation: null
         });
 
         // Sign out the new user after the Firestore write completes
