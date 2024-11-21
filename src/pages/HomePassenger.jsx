@@ -10,7 +10,8 @@ import { useState, useContext } from "react";
 import { LanguageContext } from "../helpers/LanguageContext";
 import TextField from '@mui/material/TextField';
 import Typography from "@mui/material/Typography";
-
+import { auth, db } from "../firebase-config";
+import { collection, doc, getDocs, query, updateDoc, where } from "firebase/firestore"
 function HomePassenger() {
   const navigate = useNavigate();
   const { language } = useContext(LanguageContext);
@@ -19,108 +20,52 @@ function HomePassenger() {
   const [dropOffPoint, setDropOffPoint] = useState("");
   const [departureTime, setDepartureTime] = useState(null);
   const [selectedSeats, setSelectedSeats] = useState(1);
+  const [loading, setLoading] = useState(false)
+
+  console.log(auth.currentUser.email)
 
   const isSearchEnabled =
     pickupPoint && dropOffPoint && departureTime && selectedSeats;
 
-  const handleSearch = () => {
-    if (isSearchEnabled) {
-      navigate(
-        `/app/available-routes?pickup=${pickupPoint}&dropoff=${dropOffPoint}&time=${departureTime}&seats=${selectedSeats}`
-      );
+  // const handleSearch = () => {
+  //   if (isSearchEnabled) {
+  //     navigate(
+  //       `/app/available-routes?pickup=${pickupPoint}&dropoff=${dropOffPoint}&time=${departureTime}&seats=${selectedSeats}`
+  //     );
+  //   }
+  // };
+
+  const handlePickUpChange= (e)=>{
+    setPickupPoint(e.target.value)
+  }
+
+  const handleUpdateLocation = async()=>{
+    try {
+      setLoading(true)
+      const personQ = query(
+        collection(db, "accounts"),
+        where("email", "==", auth.currentUser.email)
+      )
+      const personQuerySnapshot = await getDocs(personQ)
+
+      if(!personQuerySnapshot.empty) {
+        const personDoc = personQuerySnapshot.docs[0]
+        const personDocRef = doc(db, "accounts", personDoc.id)
+        await updateDoc(personDocRef, {pickUpLocation: pickupPoint })
+        console.log("location updated")
+      }else{
+        console.log("person not found")
+      }
+    } catch (error) {
+      console.log("error updating location", error)
+      
+    }finally{
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <Box sx={{ padding: "0 24px" }}>
-      {/* <h1
-        className="h2"
-        style={{
-          paddingTop: "47px",
-          textAlign: "center",
-          paddingBottom: "20px",
-        }}
-      >
-        {language.homePassenger.findARide}
-      </h1>
-
-      <Box
-        sx={{
-          display: "grid",
-          border: "1px solid #C4C4C4",
-          gridTemplateColumns: "40px 1fr",
-          padding: "16px 0",
-          marginBottom: "24px",
-          borderRadius: "6px",
-        }}
-      >
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateRows: "16px 29px 16px",
-            marginLeft: "12px",
-          }}
-        >
-          <Box
-            sx={{
-              width: "16px",
-              height: "16px",
-              border: "4px solid #39B54A",
-              borderRadius: "16px",
-            }}
-          ></Box>
-          <Box
-            sx={{ borderLeft: "1px dashed #C4C4C4", marginLeft: "8px" }}
-          ></Box>
-          <Box
-            sx={{
-              width: "16px",
-              height: "16px",
-              border: "4px solid #FF0000",
-              borderRadius: "16px",
-            }}
-          ></Box>
-        </Box>
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateRows: "1fr 1fr",
-            "& > div": { display: "flex", color: "rgba(0, 0, 0, .7)" },
-          }}
-        >
-          <SelectLocation
-            label={language.homePassenger.pickupPoint}
-            selectedLocation={pickupPoint}
-            onSelect={setPickupPoint}
-          />
-          <SelectLocation
-            label={language.homePassenger.dropOffPoint}
-            selectedLocation={dropOffPoint}
-            onSelect={setDropOffPoint}
-            customStyles={{
-              borderBottom: "none",
-              position: "relative",
-              top: "14px",
-            }}
-          />
-        </Box>
-      </Box>
-
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <TimePicker
-          sx={{ width: "100%" }}
-          label={language.homePassenger.selectDepartureTime}
-          value={departureTime}
-          onChange={(newValue) => setDepartureTime(newValue)}
-        />
-      </LocalizationProvider>
-
-      <BookingCards
-        selectedSeats={selectedSeats}
-        setSelectedSeats={setSelectedSeats}
-      /> */}
-
-      
     <Typography
     
     sx={{
@@ -129,7 +74,8 @@ function HomePassenger() {
       marginBottom: '8px', // Margin below the Typography
       width: "369px",
       height: "96px",
-      font: "jost"
+      font: "jost",
+      marginTop: "62px"
     }} 
 
     >
@@ -144,11 +90,12 @@ function HomePassenger() {
       height: "24px", 
       width: "114",
       font: "jost",
-      fontWeight: "400"
-      
+      fontWeight: "400", 
+          
       }}
-       value="Accra"
-      />
+      value={pickupPoint}
+      onChange={handlePickUpChange}
+     />
       </Box>
 
       <Button
@@ -156,18 +103,18 @@ function HomePassenger() {
         variant="contained"
         fullWidth
         type="button"
-        // disabled={!isSearchEnabled}
+        disabled={loading}
         sx={{
           height: "48px",
         
           textTransform: "none",
           boxShadow: "none",
           borderRadius: "9px",
-          marginTop: "24px",
+          marginTop: "50px",
         }}
-        onClick={handleSearch}
+        onClick={handleUpdateLocation}
       >
-        {language.homePassenger.searchButton}
+        {loading? "loading...": language.homePassenger.searchButton}
       </Button>
     </Box>
   );
