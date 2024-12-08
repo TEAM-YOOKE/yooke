@@ -14,6 +14,7 @@ import AccountCard from "../components/cards/AccountCard";
 import SearchField from "../components/inputs/SearchField";
 import FilterChips from "../components/inputs/FilterChips";
 import { CircularProgress } from "@mui/material";
+import AdminAddNew from "./AdminAddNew";
 
 const AdminUsersList = () => {
   const [loading, setLoading] = useState(true);
@@ -23,6 +24,7 @@ const AdminUsersList = () => {
   const [selectedFilter, setSelectedFilter] = useState("All"); // Filter selection state
   const [pageNumber, setPageNumber] = useState(1); // Current page number
   const usersPerPage = 6; // Fixed number of users per page
+  const [openAccountForm, setOpenAccountForm] = useState(false);
 
   // Fetch users from Firestore
   useEffect(() => {
@@ -56,6 +58,14 @@ const AdminUsersList = () => {
     setFilteredUsers(filtered);
     setPageNumber(1); // Reset to the first page when filters change
   }, [users, searchQuery, selectedFilter]);
+
+  const handleClickOpenAccountForm = () => {
+    setOpenAccountForm(true);
+  };
+
+  const handleCloseAccountForm = () => {
+    setOpenAccountForm(false);
+  };
 
   // Delete user
   const handleDelete = async (id) => {
@@ -115,6 +125,9 @@ const AdminUsersList = () => {
               user={user}
               key={user.id}
               handleDelete={() => handleDelete(user.id)}
+              handleClickOpenAccountForm = {handleClickOpenAccountForm}
+              handleCloseAccountForm = {handleCloseAccountForm}
+              
             />
           ))
         )}
@@ -126,6 +139,7 @@ const AdminUsersList = () => {
         count={totalPages}
         onChange={(e, page) => setPageNumber(page)}
       />
+      <AdminAddNew open={openAccountForm} handleClose={handleCloseAccountForm} />
     </Box>
   );
 };
