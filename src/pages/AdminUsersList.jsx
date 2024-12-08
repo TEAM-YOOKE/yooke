@@ -1,11 +1,6 @@
 import React, { useEffect, useState } from "react";
 import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
-import IconButton from "@mui/material/IconButton";
-import DeleteIcon from "@mui/icons-material/Delete";
 import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Divider from "@mui/material/Divider";
 import { db } from "../firebase-config";
 import {
   collection,
@@ -14,23 +9,55 @@ import {
   deleteDoc,
   doc,
 } from "firebase/firestore";
+import YookePagination from "../components/navbars/Pagination";
+import AccountCard from "../components/cards/AccountCard";
+import SearchField from "../components/inputs/SearchField";
+import FilterChips from "../components/inputs/FilterChips";
+import { CircularProgress } from "@mui/material";
 
-const AdminUsersList = ({ searchQuery, accountType }) => {
-  const [users, setUsers] = useState([]);
+const AdminUsersList = () => {
+  const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState([]); // Stores all users from Firestore
+  const [filteredUsers, setFilteredUsers] = useState([]); // Stores filtered users
+  const [searchQuery, setSearchQuery] = useState(""); // Search query state
+  const [selectedFilter, setSelectedFilter] = useState("All"); // Filter selection state
+  const [pageNumber, setPageNumber] = useState(1); // Current page number
+  const usersPerPage = 6; // Fixed number of users per page
 
+  // Fetch users from Firestore
   useEffect(() => {
+    setLoading(true);
     const q = query(collection(db, "accounts"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const usersData = [];
-      querySnapshot.forEach((doc) => {
-        usersData.push({ id: doc.id, ...doc.data() });
-      });
+      const usersData = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
       setUsers(usersData);
+      setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
+  // Apply filters and search query when data or filter changes
+  useEffect(() => {
+    const filtered = users.filter((user) => {
+      const matchesSearchQuery =
+        user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.company.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchesAccountType =
+        selectedFilter === "All" || user.accountType === selectedFilter;
+
+      return matchesSearchQuery && matchesAccountType;
+    });
+
+    setFilteredUsers(filtered);
+    setPageNumber(1); // Reset to the first page when filters change
+  }, [users, searchQuery, selectedFilter]);
+
+  // Delete user
   const handleDelete = async (id) => {
     try {
       await deleteDoc(doc(db, "accounts", id));
@@ -39,59 +66,66 @@ const AdminUsersList = ({ searchQuery, accountType }) => {
     }
   };
 
-  const filteredUsers = users.filter((user) => {
-    const matchesSearchQuery =
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.company.toLowerCase().includes(searchQuery.toLowerCase());
-
-    const matchesAccountType =
-      accountType === "All" || user.accountType === accountType;
-
-    return matchesSearchQuery && matchesAccountType;
-  });
-
-  const sortedUsers = filteredUsers.sort((a, b) =>
-    a.email.localeCompare(b.email)
+  // Handle pagination logic
+  const startIndex = (pageNumber - 1) * usersPerPage;
+  const currentUsers = filteredUsers.slice(
+    startIndex,
+    startIndex + usersPerPage
   );
+  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
 
+  // Render component
   return (
     <Box>
-      <List>
-        {sortedUsers.map((item) => (
-          <React.Fragment key={item.id}>
-            <ListItem
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <Box sx={{ display: "flex", flexDirection: "column" }}>
-                <Typography variant="body1">
-                  <strong>Email:</strong> {item.email}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Company:</strong> {item.company}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Initial Password:</strong> {item.initialPassword}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Account Type:</strong> {item.accountType}
-                </Typography>
-              </Box>
-              <IconButton
-                edge="end"
-                aria-label="delete"
-                onClick={() => handleDelete(item.id)}
-              >
-                <DeleteIcon />
-              </IconButton>
-            </ListItem>
-            <Divider />
-          </React.Fragment>
-        ))}
+      {/* Search Field */}
+      <SearchField
+        searchQuery={searchQuery}
+        onSearchChange={(e) => setSearchQuery(e.target.value)}
+        label="Search by email or company"
+      />
+
+      {/* Filter Chips */}
+      <FilterChips
+        selectedFilter={selectedFilter}
+        onFilterChange={setSelectedFilter}
+      />
+
+      {/* User List */}
+      <List
+      // sx={{
+      //   display: "grid",
+      //   gap: "1rem",
+      //   gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+      // }}
+      >
+        {loading ? (
+          <Box
+            sx={{
+              height: "50vh",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <CircularProgress />
+          </Box>
+        ) : (
+          currentUsers.map((user) => (
+            <AccountCard
+              user={user}
+              key={user.id}
+              handleDelete={() => handleDelete(user.id)}
+            />
+          ))
+        )}
       </List>
+
+      {/* Pagination */}
+      <YookePagination
+        page={pageNumber}
+        count={totalPages}
+        onChange={(e, page) => setPageNumber(page)}
+      />
     </Box>
   );
 };

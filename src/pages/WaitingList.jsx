@@ -7,74 +7,127 @@ import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
 import { db } from "../firebase-config";
 import { collection, query, onSnapshot } from "firebase/firestore";
-import { format } from "date-fns"; // Importing date-fns for formatting
+import { format } from "date-fns"; // For date formatting
+import SearchField from "../components/inputs/SearchField";
+import YookePagination from "../components/navbars/Pagination";
+import { CircularProgress } from "@mui/material";
 
 const WaitingList = () => {
-  const [waitingList, setWaitingList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [waitingList, setWaitingList] = useState([]); // Full waiting list from Firestore
+  const [filteredWaitingList, setFilteredWaitingList] = useState([]); // Filtered list after search/sort
+  const [searchQuery, setSearchQuery] = useState(""); // Search query state
   const [sortOrder, setSortOrder] = useState("email"); // Default sorting by email
+  const [pageNumber, setPageNumber] = useState(1); // Current page number
+  const itemsPerPage = 5; // Number of items per page
 
+  // Fetch data from Firestore
   useEffect(() => {
     const q = query(collection(db, "waitinglist"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const waitingListData = [];
-      querySnapshot.forEach((doc) => {
+      const waitingListData = querySnapshot.docs.map((doc) => {
         const data = doc.data();
-        waitingListData.push({
+        return {
           id: doc.id,
           email: data.email,
-          date: data.date?.toDate() || null, // Convert Firestore Timestamp to JavaScript Date
-        });
+          date: data.date?.toDate() || null, // Convert Firestore Timestamp to JS Date
+        };
       });
       setWaitingList(waitingListData);
+      setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
-  const handleSortChange = (sortOption) => {
-    setSortOrder(sortOption);
-  };
+  // Filter and sort data whenever searchQuery, sortOrder, or waitingList changes
+  useEffect(() => {
+    const filtered = waitingList.filter((item) =>
+      item.email.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
-  const sortedWaitingList = waitingList.sort((a, b) => {
-    return sortOrder === "email"
-      ? a.email.localeCompare(b.email)
-      : new Date(b.date) - new Date(a.date);
-  });
+    const sorted = filtered.sort((a, b) => {
+      return sortOrder === "email"
+        ? a.email.localeCompare(b.email)
+        : new Date(b.date) - new Date(a.date);
+    });
+
+    setFilteredWaitingList(sorted);
+    setPageNumber(1); // Reset to the first page when filters change
+  }, [waitingList, searchQuery, sortOrder]);
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredWaitingList.length / itemsPerPage);
+  const startIndex = (pageNumber - 1) * itemsPerPage;
+  const currentItems = filteredWaitingList.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
 
   return (
     <Box sx={{ overflow: "auto" }}>
+      {/* Search Field */}
+      <SearchField
+        searchQuery={searchQuery}
+        onSearchChange={(e) => setSearchQuery(e.target.value)}
+        label="Search by email"
+      />
+
+      {/* Sorting Chips */}
       <Box sx={{ m: 2, display: "flex", gap: 1 }}>
         <Chip
           label="Order by Email (A-Z)"
           color={sortOrder === "email" ? "primary" : "default"}
-          onClick={() => handleSortChange("email")}
+          onClick={() => setSortOrder("email")}
         />
         <Chip
           label="Most Recently Added"
           color={sortOrder === "recent" ? "primary" : "default"}
-          onClick={() => handleSortChange("recent")}
+          onClick={() => setSortOrder("recent")}
         />
       </Box>
+
+      {/* Waiting List */}
       <List>
-        {sortedWaitingList.map((item) => (
-          <React.Fragment key={item.id}>
-            <ListItem>
-              <Box sx={{ display: "flex", flexDirection: "column" }}>
-                <Typography variant="body1">
-                  <strong>Email:</strong> {item.email}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Date Added:</strong>{" "}
-                  {item.date
-                    ? format(new Date(item.date), "MMMM d, yyyy hh:mm a") // Human-friendly format
-                    : "N/A"}
-                </Typography>
-              </Box>
-            </ListItem>
-            <Divider />
-          </React.Fragment>
-        ))}
+        {loading ? (
+          <Box
+            sx={{
+              height: "50vh",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <CircularProgress />
+          </Box>
+        ) : (
+          currentItems.map((item) => (
+            <React.Fragment key={item.id}>
+              <ListItem>
+                <Box sx={{ display: "flex", flexDirection: "column" }}>
+                  <Typography variant="body1">
+                    <strong>Email:</strong> {item.email}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Date Added:</strong>{" "}
+                    {item.date
+                      ? format(new Date(item.date), "MMMM d, yyyy hh:mm a")
+                      : "N/A"}
+                  </Typography>
+                </Box>
+              </ListItem>
+              <Divider />
+            </React.Fragment>
+          ))
+        )}
       </List>
+
+      {/* Pagination */}
+      <YookePagination
+        page={pageNumber}
+        count={totalPages}
+        onChange={(e, page) => setPageNumber(page)}
+      />
     </Box>
   );
 };
