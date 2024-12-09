@@ -15,9 +15,11 @@ import { useAuth } from "../../helpers/GeneralContext";
 import { LanguageContext } from "../../helpers/LanguageContext";
 import AdminAddNew from "../../pages/AdminAddNew";
 import { Box } from "@mui/material";
+import CarForm from "../dialogs/CarForm";
 const AdminNavbar = ({ tabValue, handleTabChange }) => {
   const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [openAccountForm, setOpenAccountForm] = useState(false);
+  const [openCarForm, setOpenCarForm] = useState(false);
 
   const navigatge = useNavigate();
 
@@ -35,12 +37,20 @@ const AdminNavbar = ({ tabValue, handleTabChange }) => {
     }
   }, []);
 
-  const handleClickOpen = () => {
-    setOpen(true);
+  const handleClickOpenAccountForm = () => {
+    setOpenAccountForm(true);
   };
 
-  const handleClose = () => {
-    setOpen(false);
+  const handleCloseAccountForm = () => {
+    setOpenAccountForm(false);
+  };
+
+  const handleClickOpenCarForm = () => {
+    setOpenCarForm(true);
+  };
+
+  const handleCloseCarForm = () => {
+    setOpenCarForm(false);
   };
 
   const handleLogout = async () => {
@@ -101,15 +111,29 @@ const AdminNavbar = ({ tabValue, handleTabChange }) => {
               variant="contained"
               color="primary"
               startIcon={<AddIcon />}
-              onClick={handleClickOpen}
+              onClick={handleClickOpenAccountForm}
             >
-              Add New
+              Add Account
+            </Button>
+          )}
+          {tabValue === 2 && (
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              onClick={handleClickOpenCarForm}
+            >
+              Add Car
             </Button>
           )}
         </Box>
       </AppBar>
       <Toolbar sx={{ height: navbarHeight, backgroundColor: "#fff" }} />
-      <AdminAddNew open={open} handleClose={handleClose} />
+      <AdminAddNew
+        open={openAccountForm}
+        handleClose={handleCloseAccountForm}
+      />
+      <CarForm open={openCarForm} handleClose={handleCloseCarForm} />
     </Box>
   );
 };

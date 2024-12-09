@@ -14,6 +14,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase-config";
 import CircularProgress from "@mui/material/CircularProgress";
+import CarForm from "../components/dialogs/CarForm";
 
 const RecurringRides = () => {
   const [selectedCar, setSelectedCar] = useState({});
@@ -23,6 +24,7 @@ const RecurringRides = () => {
   const [passengersLoading, setPassengersLoading] = useState(false);
   const [passengers, setPassengers] = useState([]);
   const [addLoading, setAddLoading] = useState(false);
+  const [openCarForm, setOpenCarForm] = useState(false);
 
   const fetchPassengers = async () => {
     try {
@@ -135,10 +137,17 @@ const RecurringRides = () => {
     }
   };
 
+  const handleOpenCarForm = () => {
+    setOpenCarForm(true);
+  };
+  const handleCloseCarForm = () => {
+    setOpenCarForm(false);
+  };
+
   return (
     <Grid container p={2}>
       {/* Left Section */}
-      <Grid item size={4}>
+      <Grid item md={7} size={4}>
         <Button
           variant="contained"
           type="button"
@@ -149,6 +158,7 @@ const RecurringRides = () => {
             borderRadius: "9px",
             marginY: 1,
           }}
+          onClick={handleOpenCarForm}
         >
           Add new car
         </Button>
@@ -162,11 +172,9 @@ const RecurringRides = () => {
                 cursor="pointer"
                 onClick={() => handleCarSelect(car)}
                 borderRadius={2}
-                bgcolor={
-                  selectedCar.plate === car.plate ? "#33bdbd" : "#f0fbfb"
-                }
+                bgcolor={selectedCar.plate === car.plate ? "#f0fbfb" : ""}
               >
-                <CarCard car={car} />
+                <CarCard car={car} showActions={false} showPassengers={true} />
               </Box>
             ))}
           </Box>
@@ -174,7 +182,7 @@ const RecurringRides = () => {
       </Grid>
 
       {/* Right Section */}
-      <Grid p={8}>
+      <Grid md={5} item p={8}>
         <Box component="form" onSubmit={handleAddPersonToCar}>
           {selectedCar && selectedCar.plate ? (
             <Typography variant="h6">
@@ -192,7 +200,11 @@ const RecurringRides = () => {
               }
               disablePortal
               options={passengers ?? []}
-              getOptionLabel={(option) => option.email + " " + (option?.pickUpLocation || "")}
+              getOptionLabel={(option) =>
+                (option.name || option.email) +
+                " - " +
+                (option?.pickUpLocation || "")
+              }
               onChange={(event, newValue) => setSelectedPerson(newValue)}
               sx={{ width: 300 }}
               renderInput={(params) => (
@@ -244,6 +256,7 @@ const RecurringRides = () => {
           Who is going where? Name + place they are going
         </Typography>
       </Grid>
+      <CarForm open={openCarForm} handleClose={handleCloseCarForm} />
     </Grid>
   );
 };
