@@ -1,165 +1,200 @@
-import React, { useState } from "react";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import DialogActions from "@mui/material/DialogActions";
-import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
-import RadioGroup from "@mui/material/RadioGroup";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Radio from "@mui/material/Radio";
-import Alert from "@mui/material/Alert";
-import CircularProgress from "@mui/material/CircularProgress";
-import Snackbar from "@mui/material/Snackbar";
-import { db, auth } from "../firebase-config"; // Import db and auth from your config
-import { addDoc, collection } from "firebase/firestore";
+import React, { useEffect, useState } from "react";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  Alert,
+  CircularProgress,
+  Snackbar,
+} from "@mui/material";
+import { db, auth } from "../firebase-config";
+import { addDoc, collection, doc, updateDoc, getDoc } from "firebase/firestore";
 import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
 
-const AdminAddNew = ({ open, handleClose }) => {
-  const [email, setEmail] = useState("");
-  const [company, setCompany] = useState("");
-  const [accountType, setAccountType] = useState("Car owner");
-  const [emailError, setEmailError] = useState("");
-  const [companyError, setCompanyError] = useState("");
+const AdminAddNew = ({ open, handleClose, user }) => {
+  const [formData, setFormData] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    company: "",
+    accountType: "Car owner",
+  });
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
-  const validateEmail = (email) => {
-    const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    return re.test(String(email).toLowerCase());
+  useEffect(() => {
+    // Populate form fields when editing
+    if (user) {
+      setFormData({
+        name: user.name || "",
+        phone: user.phone || "",
+        email: user.email || "",
+        company: user.company || "",
+        accountType: user.accountType || "Car owner",
+      });
+    } else {
+      setFormData({
+        name: "",
+        phone: "",
+        email: "",
+        company: "",
+        accountType: "Car owner",
+      });
+    }
+  }, [user]);
+
+  const validateField = (name, value) => {
+    const validators = {
+      name: (val) => /^[a-zA-Z ]+$/.test(val) || "Invalid name format",
+      email: (val) =>
+        /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(val) ||
+        "Invalid email format",
+      phone: (val) =>
+        /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/.test(val) ||
+        "Invalid phone number format",
+      company: (val) => val.trim() !== "" || "Company name is required",
+    };
+    return validators[name] ? validators[name](value) : true;
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    Object.keys(formData).forEach((key) => {
+      const validationResult = validateField(key, formData[key]);
+      if (validationResult !== true) {
+        newErrors[key] = validationResult;
+      }
+    });
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const generatePassword = () => {
     const chars =
+      process.env.REACT_APP_PASSWORD_SECRETE ||
       "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    const passwordLength = 8;
-    let password = "";
-    for (let i = 0; i < passwordLength; i++) {
-      const randomIndex = Math.floor(Math.random() * chars.length);
-      password += chars[randomIndex];
-    }
-    return password;
+    return Array.from({ length: 8 }, () =>
+      chars.charAt(Math.floor(Math.random() * chars.length))
+    ).join("");
   };
 
   const handleSubmit = async () => {
-    let isValid = true;
+    if (!validateForm()) return;
 
-    if (!validateEmail(email)) {
-      setEmailError("Invalid email format");
-      isValid = false;
-    } else {
-      setEmailError("");
-    }
-
-    if (company.trim() === "") {
-      setCompanyError("Company name is required");
-      isValid = false;
-    } else {
-      setCompanyError("");
-    }
-
-    if (isValid) {
-      setLoading(true);
-      const initialPassword = generatePassword();
-      try {
-        // Create the user with the default auth instance
+    setLoading(true);
+    try {
+      if (user) {
+        // Update existing user
+        const userDoc = doc(db, "accounts", user.id); // Assumes `user` contains a Firestore document ID
+        await updateDoc(userDoc, { ...formData, updatedAt: new Date() });
+        setSnackbar({
+          open: true,
+          message: `Account details updated successfully`,
+          severity: "success",
+        });
+      } else {
+        const initialPassword = generatePassword();
         const userCredential = await createUserWithEmailAndPassword(
           auth,
-          email,
+          formData.email,
           initialPassword
         );
 
-        // Add the new user to the Firestore database
         await addDoc(collection(db, "accounts"), {
-          email,
-          company,
-          accountType,
+          ...formData,
           initialPassword,
           createdAt: new Date(),
           assignedCar: null,
-          pickUpLocation: null
+          pickUpLocation: null,
         });
-
-        // Sign out the new user after the Firestore write completes
-        await signOut(auth);
-
-        setSnackbarMessage(
-          "Account created successfully with initial password: " +
-            initialPassword
-        );
-        setSnackbarSeverity("success");
-        setSnackbarOpen(true);
-
-        // Reset form state
-        setEmail("");
-        setCompany("");
-        setAccountType("Car owner");
-        handleClose();
-      } catch (error) {
-        console.error("Failed to create account", error);
-        setSnackbarMessage("Failed to create account: " + error.message);
-        setSnackbarSeverity("error");
-        setSnackbarOpen(true);
-      } finally {
-        setLoading(false);
+        setSnackbar({
+          open: true,
+          message: `Account created successfully with initial password: ${initialPassword}`,
+          severity: "success",
+        });
       }
-    }
-  };
 
-  const handleSnackbarClose = () => {
-    setSnackbarOpen(false);
+      // await signOut(auth);
+
+      setFormData({
+        name: "",
+        phone: "",
+        email: "",
+        company: "",
+        accountType: "Car owner",
+      });
+      handleClose();
+    } catch (error) {
+      console.error("Failed to create account", error);
+      setSnackbar({
+        open: true,
+        message: user
+          ? `Failed to update account: ${error.message}`
+          : `Failed to create account: ${error.message}`,
+        severity: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <>
       <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Create New Account</DialogTitle>
+        <DialogTitle>
+          {user ? "Update Account" : "Create New Account"}
+        </DialogTitle>
         <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Email"
-            type="email"
-            fullWidth
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            error={!!emailError}
-            helperText={emailError}
-            disabled={loading}
-          />
-          <TextField
-            margin="dense"
-            label="Name of Company"
-            type="text"
-            fullWidth
-            required
-            value={company}
-            onChange={(e) => setCompany(e.target.value)}
-            error={!!companyError}
-            helperText={companyError}
-            disabled={loading}
-          />
+          {["name", "email", "phone", "company"].map((field) => (
+            <TextField
+              key={field}
+              margin="dense"
+              label={
+                field === "company"
+                  ? "Company Name"
+                  : field.charAt(0).toUpperCase() + field.slice(1)
+              }
+              type={field}
+              name={field}
+              fullWidth
+              value={formData[field]}
+              onChange={handleChange}
+              error={!!errors[field]}
+              helperText={errors[field]}
+              disabled={loading}
+            />
+          ))}
           <RadioGroup
-            aria-label="account-type"
-            name="account-type"
-            value={accountType}
-            onChange={(e) => setAccountType(e.target.value)}
+            name="accountType"
+            value={formData.accountType}
+            onChange={handleChange}
           >
-            <FormControlLabel
-              value="Car owner"
-              control={<Radio />}
-              label="Car owner"
-              disabled={loading}
-            />
-            <FormControlLabel
-              value="Passenger"
-              control={<Radio />}
-              label="Passenger"
-              disabled={loading}
-            />
+            {["Car owner", "Passenger"].map((type) => (
+              <FormControlLabel
+                key={type}
+                value={type}
+                control={<Radio />}
+                label={type}
+                disabled={loading}
+              />
+            ))}
           </RadioGroup>
           <Alert severity="info" sx={{ mt: 2 }}>
             An initial password will be generated automatically.
@@ -175,21 +210,27 @@ const AdminAddNew = ({ open, handleClose }) => {
             variant="contained"
             disabled={loading}
           >
-            {loading ? <CircularProgress size={24} /> : "Create"}
+            {loading ? (
+              <CircularProgress size={24} />
+            ) : user ? (
+              "Update"
+            ) : (
+              "Create"
+            )}
           </Button>
         </DialogActions>
       </Dialog>
       <Snackbar
-        open={snackbarOpen}
+        open={snackbar.open}
         autoHideDuration={6000}
-        onClose={handleSnackbarClose}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
       >
         <Alert
-          onClose={handleSnackbarClose}
-          severity={snackbarSeverity}
+          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+          severity={snackbar.severity}
           sx={{ width: "100%" }}
         >
-          {snackbarMessage}
+          {snackbar.message}
         </Alert>
       </Snackbar>
     </>

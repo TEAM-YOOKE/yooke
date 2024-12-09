@@ -25,6 +25,7 @@ const AdminUsersList = () => {
   const [pageNumber, setPageNumber] = useState(1); // Current page number
   const usersPerPage = 6; // Fixed number of users per page
   const [openAccountForm, setOpenAccountForm] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   // Fetch users from Firestore
   useEffect(() => {
@@ -47,7 +48,8 @@ const AdminUsersList = () => {
     const filtered = users.filter((user) => {
       const matchesSearchQuery =
         user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.company.toLowerCase().includes(searchQuery.toLowerCase());
+        user.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.name?.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesAccountType =
         selectedFilter === "All" || user.accountType === selectedFilter;
@@ -59,11 +61,13 @@ const AdminUsersList = () => {
     setPageNumber(1); // Reset to the first page when filters change
   }, [users, searchQuery, selectedFilter]);
 
-  const handleClickOpenAccountForm = () => {
+  const handleClickOpenAccountForm = (user) => {
+    setSelectedUser(user);
     setOpenAccountForm(true);
   };
 
-  const handleCloseAccountForm = () => {
+  const handleCloseAccountForm = (user) => {
+    setSelectedUser(null);
     setOpenAccountForm(false);
   };
 
@@ -91,7 +95,7 @@ const AdminUsersList = () => {
       <SearchField
         searchQuery={searchQuery}
         onSearchChange={(e) => setSearchQuery(e.target.value)}
-        label="Search by email or company"
+        label="Search by email, name or company"
       />
 
       {/* Filter Chips */}
@@ -121,14 +125,18 @@ const AdminUsersList = () => {
           </Box>
         ) : (
           currentUsers.map((user) => (
-            <AccountCard
-              user={user}
-              key={user.id}
-              handleDelete={() => handleDelete(user.id)}
-              handleClickOpenAccountForm = {handleClickOpenAccountForm}
-              handleCloseAccountForm = {handleCloseAccountForm}
-              
-            />
+            <Box
+              sx={{ cursor: "pointer", ":hover": { bgcolor: "#f0fbfb" } }}
+              // onClick={() => handleClickOpenAccountForm(user)}
+            >
+              <AccountCard
+                user={user}
+                key={user.id}
+                handleDelete={() => handleDelete(user.id)}
+                handleClickOpenAccountForm={handleClickOpenAccountForm}
+                handleCloseAccountForm={handleCloseAccountForm}
+              />
+            </Box>
           ))
         )}
       </List>
@@ -139,7 +147,11 @@ const AdminUsersList = () => {
         count={totalPages}
         onChange={(e, page) => setPageNumber(page)}
       />
-      <AdminAddNew open={openAccountForm} handleClose={handleCloseAccountForm} />
+      <AdminAddNew
+        open={openAccountForm}
+        handleClose={handleCloseAccountForm}
+        user={selectedUser}
+      />
     </Box>
   );
 };
