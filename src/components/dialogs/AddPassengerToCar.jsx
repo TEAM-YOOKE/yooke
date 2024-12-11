@@ -23,7 +23,7 @@ import {
   where,
 } from "firebase/firestore";
 
-const CarForm = ({ open, handleClose, car }) => {
+const AddPassengerToCar = ({ open, handleClose, car }) => {
   /**
    * A form to add or update a car
    *

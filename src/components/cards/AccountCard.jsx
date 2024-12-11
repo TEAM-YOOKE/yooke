@@ -29,10 +29,10 @@ const ACard1 = ({ user, handleDelete, handleClickOpenAccountForm }) => {
             <strong>Email:</strong> {user.email}
           </Typography>
           <Typography variant="body1">
-            <strong>Name:</strong> {user?.name || "N/A"}
+            <strong>Username:</strong> {user?.username || "N/A"}
           </Typography>
           <Typography variant="body1">
-            <strong>Phone:</strong> {user?.phone || "N/A"}
+            <strong>WhatsApp:</strong> {user?.whatsappNumber || "N/A"}
           </Typography>
           <Typography variant="body1" sx={{ color: "#4a4a4a" }}>
             <strong>Location:</strong> {user?.pickUpLocation || "N/A"}

@@ -22,6 +22,7 @@ import {
   getDocs,
   where,
 } from "firebase/firestore";
+import useCars from "../../hooks/cars";
 
 const CarForm = ({ open, handleClose, car }) => {
   const [formData, setFormData] = useState({
@@ -38,31 +39,33 @@ const CarForm = ({ open, handleClose, car }) => {
     severity: "success",
   });
 
+  const { refreshCars } = useCars();
+
   const [drivers, setDrivers] = useState([]);
 
   // Fetch drivers with accountType === "Car owner"
-  const fetchDrivers = async () => {
-    try {
-      const q = query(
-        collection(db, "accounts"),
-        where("accountType", "==", "Car owner")
-      );
-      const querySnapshot = await getDocs(q);
-      const driversData = querySnapshot.docs.map((doc) => doc.data());
-      setDrivers(driversData);
-    } catch (error) {
-      console.error("Error fetching drivers:", error);
-      setSnackbar({
-        open: true,
-        message: "Failed to load drivers. Please try again.",
-        severity: "error",
-      });
-    }
-  };
+  // const fetchDrivers = async () => {
+  //   try {
+  //     const q = query(
+  //       collection(db, "accounts"),
+  //       where("accountType", "==", "Car owner")
+  //     );
+  //     const querySnapshot = await getDocs(q);
+  //     const driversData = querySnapshot.docs.map((doc) => doc.data());
+  //     setDrivers(driversData);
+  //   } catch (error) {
+  //     console.error("Error fetching drivers:", error);
+  //     setSnackbar({
+  //       open: true,
+  //       message: "Failed to load drivers. Please try again.",
+  //       severity: "error",
+  //     });
+  //   }
+  // };
 
-  useEffect(() => {
-    fetchDrivers();
-  }, []);
+  // useEffect(() => {
+  //   fetchDrivers();
+  // }, []);
 
   // Populate form data for editing
   useEffect(() => {
@@ -101,21 +104,21 @@ const CarForm = ({ open, handleClose, car }) => {
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  const handleDriverSelect = (event, value) => {
-    if (value) {
-      setFormData((prev) => ({
-        ...prev,
-        driverName: value.name,
-        driverPhone: value.phone,
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        driverName: "",
-        driverPhone: "",
-      }));
-    }
-  };
+  // const handleDriverSelect = (event, value) => {
+  //   if (value) {
+  //     setFormData((prev) => ({
+  //       ...prev,
+  //       driverName: value.name,
+  //       driverPhone: value.phone,
+  //     }));
+  //   } else {
+  //     setFormData((prev) => ({
+  //       ...prev,
+  //       driverName: "",
+  //       driverPhone: "",
+  //     }));
+  //   }
+  // };
 
   const validateForm = () => {
     const newErrors = {};
@@ -129,13 +132,49 @@ const CarForm = ({ open, handleClose, car }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // const checkPlateExists = async (data) => {
+  //   const q = query(
+  //     collection(db, "cars"),
+  //     where("plate", "==", formData.plate)
+  //   );
+  //   const querySnapshot = await getDocs(q);
+  //   if (!querySnapshot.empty) {
+  //     setSnackbar({
+  //       open: true,
+  //       message: "Car with the same plate already exists",
+  //       severity: "error",
+  //     });
+  //     setLoading(false);
+  //     return;
+  //   }
+  // };
+
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
     setLoading(true);
     try {
       if (car) {
+        // if there is a change in number plate, check if the new number plate already exists
+        if (car.plate !== formData.plate) {
+          const q = query(
+            collection(db, "cars"),
+            where("plate", "==", formData.plate)
+          );
+          const querySnapshot = await getDocs(q);
+          if (!querySnapshot.empty) {
+            setSnackbar({
+              open: true,
+              message: "Car with the same plate already exists",
+              severity: "error",
+            });
+            setLoading(false);
+            return;
+          }
+        }
+
         // Update existing car
+
         const carDoc = doc(db, "cars", car.id);
         await updateDoc(carDoc, { ...formData, updatedAt: new Date() });
         setSnackbar({
@@ -145,6 +184,22 @@ const CarForm = ({ open, handleClose, car }) => {
         });
       } else {
         // Add new car
+        // Check if a car with the same plate already exists
+        const q = query(
+          collection(db, "cars"),
+          where("plate", "==", formData.plate)
+        );
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          setSnackbar({
+            open: true,
+            message: "Car with the same plate already exists",
+            severity: "error",
+          });
+          setLoading(false);
+          return;
+        }
+
         await addDoc(collection(db, "cars"), {
           ...formData,
           passengers: [],
@@ -156,7 +211,14 @@ const CarForm = ({ open, handleClose, car }) => {
           severity: "success",
         });
       }
+      setFormData({
+        plate: "",
+        model: "",
+        driverName: "",
+        driverPhone: "",
+      });
       handleClose();
+      refreshCars();
     } catch (error) {
       console.error("Failed to save car", error);
       setSnackbar({
@@ -174,7 +236,7 @@ const CarForm = ({ open, handleClose, car }) => {
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>{car ? "Update Car" : "Create New Car"}</DialogTitle>
         <DialogContent>
-          <Grid container spacing={2}>
+          <Grid container spacing={2} py={1}>
             <Grid item xs={12}>
               <TextField
                 label="Plate"
@@ -202,7 +264,8 @@ const CarForm = ({ open, handleClose, car }) => {
               />
             </Grid>
             <Grid item xs={12}>
-              <Autocomplete
+              {/* <Autocomplete
+                defaultValue={(car && car.driverName) || null}
                 options={drivers}
                 getOptionLabel={(option) => option.name}
                 onChange={handleDriverSelect}
@@ -217,6 +280,17 @@ const CarForm = ({ open, handleClose, car }) => {
                   />
                 )}
                 disabled={loading}
+              /> */}
+              <TextField
+                label="Driver Name"
+                variant="outlined"
+                name="driverName"
+                value={formData.driverName}
+                onChange={handleChange}
+                error={!!errors.driverName}
+                helperText={errors.driverName}
+                fullWidth
+                disabled={loading}
               />
             </Grid>
             <Grid item xs={12}>
@@ -229,7 +303,6 @@ const CarForm = ({ open, handleClose, car }) => {
                 error={!!errors.driverPhone}
                 helperText={errors.driverPhone}
                 fullWidth
-                disabled
               />
             </Grid>
           </Grid>

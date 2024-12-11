@@ -83,6 +83,7 @@ const CarCard = ({
             {driverPhone}
           </Typography>
         </Grid>
+
         {showPassengers && (
           <Grid item>
             <Typography variant="body2">Passengers: </Typography>

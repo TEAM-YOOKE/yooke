@@ -1,28 +1,25 @@
 import React, { useEffect, useState } from "react";
-import {
-  Box,
-  Button,
-  Grid,
-  TextField,
-  Typography,
-  CircularProgress,
-} from "@mui/material";
+import { Box, Button, Grid, Typography } from "@mui/material";
 import CarCard from "../components/CarCard";
 import { db } from "../firebase-config";
-import { addDoc, collection, query, getDocs } from "firebase/firestore";
+import { collection, query, getDocs, deleteDoc, doc } from "firebase/firestore";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import CarForm from "../components/dialogs/CarForm";
 import YookePagination from "../components/navbars/Pagination";
 import SearchField from "../components/inputs/SearchField";
+import CircularProgressLoading from "../components/feedbacks/CircularProgressLoading";
+import useCars from "../hooks/cars";
 function Cars() {
-  const [cars, setCars] = useState([]);
+  // const [cars, setCars] = useState([]);
   const [selectedCar, setSelectedCar] = useState(null);
   const [openCarForm, setOpenCarForm] = useState(false);
-  const [carsLoading, setCarsLoading] = useState(false);
+  // const [carsLoading, setCarsLoading] = useState(false);
   const [filteredCars, setFilteredCars] = useState([]);
   const [selectedFilter, setSelectedFilter] = useState("All");
   const [pageNumber, setPageNumber] = useState(1);
   const [searchQuery, setSearchQuery] = useState(""); // Search query state
+
+  const { cars, refreshCars, carsLoading } = useCars();
 
   const carsPerPage = 6;
 
@@ -44,23 +41,26 @@ function Cars() {
     setPageNumber(1); // Reset to the first page when filters change
   }, [cars, searchQuery]);
 
-  const fetchCars = async () => {
-    try {
-      setCarsLoading(true);
-      const q = query(collection(db, "cars"));
-      const querySnapshot = await getDocs(q);
-      const carsData = querySnapshot.docs.map((doc) => doc.data());
-      setCars(carsData);
-    } catch (error) {
-      console.log("Error fetching cars", error);
-    } finally {
-      setCarsLoading(false);
-    }
-  };
+  // const fetchCars = async () => {
+  //   try {
+  //     setCarsLoading(true);
+  //     const q = query(collection(db, "cars"));
+  //     const querySnapshot = await getDocs(q);
+  //     const carsData = querySnapshot.docs.map((doc) => ({
+  //       ...doc.data(),
+  //       id: doc.id,
+  //     }));
+  //     setCars(carsData);
+  //   } catch (error) {
+  //     console.log("Error fetching cars", error);
+  //   } finally {
+  //     setCarsLoading(false);
+  //   }
+  // };
 
-  useEffect(() => {
-    fetchCars();
-  }, []);
+  // useEffect(() => {
+  //   fetchCars();
+  // }, []);
 
   const handleSelectedCar = (car) => {
     setSelectedCar(car);
@@ -77,7 +77,12 @@ function Cars() {
   };
 
   const handleDeleteCar = async (carId) => {
-    //
+    try {
+      await deleteDoc(doc(db, "cars", carId));
+      refreshCars();
+    } catch (error) {
+      console.error("Error deleting car: ", error);
+    }
   };
 
   // Handle pagination logic
@@ -112,7 +117,7 @@ function Cars() {
               />
             </Box>
             <Button
-              onClick={fetchCars}
+              onClick={() => refreshCars()}
               variant="outlined"
               color="primary"
               size="small"
@@ -123,16 +128,7 @@ function Cars() {
           </Box>
 
           {carsLoading ? (
-            <Box
-              sx={{
-                height: "50vh",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <CircularProgress />
-            </Box>
+            <CircularProgressLoading />
           ) : currentCars && currentCars.length ? (
             currentCars.map((car, index) => (
               <CarCard

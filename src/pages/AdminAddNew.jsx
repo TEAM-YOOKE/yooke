@@ -19,8 +19,6 @@ import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
 
 const AdminAddNew = ({ open, handleClose, user }) => {
   const [formData, setFormData] = useState({
-    name: "",
-    phone: "",
     email: "",
     company: "",
     accountType: "Car owner",
@@ -37,16 +35,12 @@ const AdminAddNew = ({ open, handleClose, user }) => {
     // Populate form fields when editing
     if (user) {
       setFormData({
-        name: user.name || "",
-        phone: user.phone || "",
         email: user.email || "",
         company: user.company || "",
         accountType: user.accountType || "Car owner",
       });
     } else {
       setFormData({
-        name: "",
-        phone: "",
         email: "",
         company: "",
         accountType: "Car owner",
@@ -56,13 +50,10 @@ const AdminAddNew = ({ open, handleClose, user }) => {
 
   const validateField = (name, value) => {
     const validators = {
-      name: (val) => /^[a-zA-Z ]+$/.test(val) || "Invalid name format",
       email: (val) =>
         /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(val) ||
         "Invalid email format",
-      phone: (val) =>
-        /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/.test(val) ||
-        "Invalid phone number format",
+
       company: (val) => val.trim() !== "" || "Company name is required",
     };
     return validators[name] ? validators[name](value) : true;
@@ -134,8 +125,6 @@ const AdminAddNew = ({ open, handleClose, user }) => {
       // await signOut(auth);
 
       setFormData({
-        name: "",
-        phone: "",
         email: "",
         company: "",
         accountType: "Car owner",
@@ -162,7 +151,7 @@ const AdminAddNew = ({ open, handleClose, user }) => {
           {user ? "Update Account" : "Create New Account"}
         </DialogTitle>
         <DialogContent>
-          {["name", "email", "phone", "company"].map((field) => (
+          {["email", "company"].map((field) => (
             <TextField
               key={field}
               margin="dense"

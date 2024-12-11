@@ -11,55 +11,66 @@ import { format } from "date-fns"; // For date formatting
 import SearchField from "../components/inputs/SearchField";
 import YookePagination from "../components/navbars/Pagination";
 import { CircularProgress } from "@mui/material";
+import CircularProgressLoading from "../components/feedbacks/CircularProgressLoading";
+import useWaitingList from "../hooks/watingList";
 
 const WaitingList = () => {
   const [loading, setLoading] = useState(true);
-  const [waitingList, setWaitingList] = useState([]); // Full waiting list from Firestore
+  // const [waitingList, setWaitingList] = useState([]); // Full waiting list from Firestore
   const [filteredWaitingList, setFilteredWaitingList] = useState([]); // Filtered list after search/sort
   const [searchQuery, setSearchQuery] = useState(""); // Search query state
   const [sortOrder, setSortOrder] = useState("email"); // Default sorting by email
   const [pageNumber, setPageNumber] = useState(1); // Current page number
   const itemsPerPage = 5; // Number of items per page
 
-  // Fetch data from Firestore
-  useEffect(() => {
-    const q = query(collection(db, "waitinglist"));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const waitingListData = querySnapshot.docs.map((doc) => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          email: data.email,
-          date: data.date?.toDate() || null, // Convert Firestore Timestamp to JS Date
-        };
-      });
-      setWaitingList(waitingListData);
-      setLoading(false);
-    });
+  const {
+    waitingList,
+    waitingListLoading,
+    refreshWatingList,
+    waitingListError,
+  } = useWaitingList();
 
-    return () => unsubscribe();
-  }, []);
+  // Fetch data from Firestore
+  // useEffect(() => {
+  //   const q = query(collection(db, "waitinglist"));
+  //   const unsubscribe = onSnapshot(q, (querySnapshot) => {
+  //     const waitingListData = querySnapshot.docs.map((doc) => {
+  //       const data = doc.data();
+  //       return {
+  //         id: doc.id,
+  //         email: data.email,
+  //         date: data.date?.toDate() || null, // Convert Firestore Timestamp to JS Date
+  //       };
+  //     });
+  //     setWaitingList(waitingListData);
+  //     setLoading(false);
+  //   });
+
+  //   return () => unsubscribe();
+  // }, []);
 
   // Filter and sort data whenever searchQuery, sortOrder, or waitingList changes
   useEffect(() => {
-    const filtered = waitingList.filter((item) =>
+    const filtered = waitingList?.filter((item) =>
       item.email.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const sorted = filtered.sort((a, b) => {
+    const sorted = filtered?.sort((a, b) => {
       return sortOrder === "email"
         ? a.email.localeCompare(b.email)
-        : new Date(b.date) - new Date(a.date);
+        : new Date(b.date?.toDate()) - new Date(a.date?.toDate());
     });
+
+    console.log(sorted);
 
     setFilteredWaitingList(sorted);
     setPageNumber(1); // Reset to the first page when filters change
   }, [waitingList, searchQuery, sortOrder]);
 
   // Pagination logic
-  const totalPages = Math.ceil(filteredWaitingList.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredWaitingList?.length / itemsPerPage);
   const startIndex = (pageNumber - 1) * itemsPerPage;
-  const currentItems = filteredWaitingList.slice(
+  const currentItems = filteredWaitingList?.slice(
     startIndex,
     startIndex + itemsPerPage
   );
@@ -89,19 +100,10 @@ const WaitingList = () => {
 
       {/* Waiting List */}
       <List>
-        {loading ? (
-          <Box
-            sx={{
-              height: "50vh",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <CircularProgress />
-          </Box>
+        {waitingListLoading ? (
+          <CircularProgressLoading />
         ) : (
-          currentItems.map((item) => (
+          currentItems?.map((item) => (
             <React.Fragment key={item.id}>
               <ListItem>
                 <Box sx={{ display: "flex", flexDirection: "column" }}>
@@ -111,7 +113,10 @@ const WaitingList = () => {
                   <Typography variant="body2">
                     <strong>Date Added:</strong>{" "}
                     {item.date
-                      ? format(new Date(item.date), "MMMM d, yyyy hh:mm a")
+                      ? format(
+                          new Date(item.date.toDate()),
+                          "MMMM d, yyyy hh:mm a"
+                        )
                       : "N/A"}
                   </Typography>
                 </Box>
