@@ -9,10 +9,11 @@ import {
   Typography,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 
 import React from "react";
 
-const ACard1 = ({ user, handleDelete }) => {
+const ACard1 = ({ user, handleDelete, handleClickOpenAccountForm }) => {
   console.log(user);
   return (
     <Box key={user.id}>
@@ -27,6 +28,12 @@ const ACard1 = ({ user, handleDelete }) => {
           <Typography variant="body1">
             <strong>Email:</strong> {user.email}
           </Typography>
+          <Typography variant="body1">
+            <strong>Username:</strong> {user?.username || "N/A"}
+          </Typography>
+          <Typography variant="body1">
+            <strong>WhatsApp:</strong> {user?.whatsappNumber || "N/A"}
+          </Typography>
           <Typography variant="body1" sx={{ color: "#4a4a4a" }}>
             <strong>Location:</strong> {user?.pickUpLocation || "N/A"}
           </Typography>
@@ -40,13 +47,33 @@ const ACard1 = ({ user, handleDelete }) => {
             <strong>Account Type:</strong> {user.accountType}
           </Typography>
         </Box>
-        <IconButton
+        <Box
           edge="end"
-          aria-label="delete"
-          onClick={() => handleDelete(user.id)}
+          display="flex"
+          flexDirection="column"
+          justifyContent="space-between"
         >
-          <DeleteIcon />
-        </IconButton>
+          <IconButton
+            size="small"
+            aria-label="edit"
+            sx={{ mb: 2 }}
+            onClick={() => handleClickOpenAccountForm(user)}
+          >
+            <EditIcon fontSize="small" sx={{ color: "blue" }} />
+          </IconButton>
+          <IconButton
+            size="small"
+            aria-label="delete"
+            onClick={() => {
+              if (
+                window.confirm(`Are you sure you want to delete ${user.email}?`)
+              )
+                handleDelete(user.id);
+            }}
+          >
+            <DeleteIcon fontSize="small" sx={{ color: "red" }} />
+          </IconButton>{" "}
+        </Box>
       </ListItem>
       <Divider />
     </Box>
@@ -110,8 +137,14 @@ const ACard2 = ({ user, handleDelete }) => {
   );
 };
 
-const AccountCard = ({ user, handleDelete }) => {
-  return <ACard1 user={user} handleDelete={handleDelete} />;
+const AccountCard = ({ user, handleDelete, handleClickOpenAccountForm }) => {
+  return (
+    <ACard1
+      user={user}
+      handleDelete={handleDelete}
+      handleClickOpenAccountForm={handleClickOpenAccountForm}
+    />
+  );
 };
 
 export default AccountCard;

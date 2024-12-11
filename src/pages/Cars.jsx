@@ -1,75 +1,94 @@
 import React, { useEffect, useState } from "react";
-import { Box, Button, Grid, TextField, Typography, CircularProgress } from "@mui/material";
+import { Box, Button, Grid, Typography } from "@mui/material";
 import CarCard from "../components/CarCard";
 import { db } from "../firebase-config";
-import { addDoc, collection, query, getDocs } from "firebase/firestore";
-import RefreshIcon from '@mui/icons-material/Refresh';
+import { collection, query, getDocs, deleteDoc, doc } from "firebase/firestore";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import CarForm from "../components/dialogs/CarForm";
+import YookePagination from "../components/navbars/Pagination";
+import SearchField from "../components/inputs/SearchField";
+import CircularProgressLoading from "../components/feedbacks/CircularProgressLoading";
+import useCars from "../hooks/cars";
 function Cars() {
-  const [cars, setCars] = useState([]);
-  const [form, setForm] = useState({
-    plate: "",
-    model: "",
-    driverName: "",
-    driverPhone: "",
-    passengers:[]
-  });
-  const [carsLoading, setCarsLoading] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  // const [cars, setCars] = useState([]);
+  const [selectedCar, setSelectedCar] = useState(null);
+  const [openCarForm, setOpenCarForm] = useState(false);
+  // const [carsLoading, setCarsLoading] = useState(false);
+  const [filteredCars, setFilteredCars] = useState([]);
+  const [selectedFilter, setSelectedFilter] = useState("All");
+  const [pageNumber, setPageNumber] = useState(1);
+  const [searchQuery, setSearchQuery] = useState(""); // Search query state
 
-  const fetchCars  = async () => {
-    try {
-      setCarsLoading(true)
-      const q = query(collection(db, "cars"));
-    const querySnapshot = await getDocs(q);
-    const carsData = querySnapshot.docs.map((doc) => doc.data());
-    setCars(carsData);
-      
-    } catch (error) {
-      console.log("Error fetching cars", error);
-    }finally{
-      setCarsLoading(false);
-    }
-  };
+  const { cars, refreshCars, carsLoading } = useCars();
 
+  const carsPerPage = 6;
+
+  // Apply filters and search query when data or filter changes
   useEffect(() => {
-    fetchCars();
-  }, []);
+    const filtered = cars.filter((car) => {
+      const matchesSearchQuery =
+        car.plate.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        car.driverName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        car.model?.toLowerCase().includes(searchQuery.toLowerCase());
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
-  };
+      // const matchesAccountType =
+      //   selectedFilter === "All" || user.accountType === selectedFilter;
 
-  const validateForm = () => {
-    const { plate, model, driverName, driverPhone } = form;
-    if (!plate || !model || !driverName || !driverPhone) {
-      setError("All fields are required.");
-      return false;
-    }
-    setError("");
-    return true;
-  };
+      return matchesSearchQuery;
+    });
 
-  const handleAddCar = async () => {
-    if (!validateForm()) return;
+    setFilteredCars(filtered);
+    setPageNumber(1); // Reset to the first page when filters change
+  }, [cars, searchQuery]);
 
-    setLoading(true);
-    try {
-      const newCar = { ...form, createdAt: new Date() };
-      await addDoc(collection(db, "cars"), newCar);
-      setCars([...cars, newCar]);
-      setForm({ plate: "", model: "", driverName: "", driverPhone: "" });
-    } catch (err) {
-      setError("Failed to add car. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const fetchCars = async () => {
+  //   try {
+  //     setCarsLoading(true);
+  //     const q = query(collection(db, "cars"));
+  //     const querySnapshot = await getDocs(q);
+  //     const carsData = querySnapshot.docs.map((doc) => ({
+  //       ...doc.data(),
+  //       id: doc.id,
+  //     }));
+  //     setCars(carsData);
+  //   } catch (error) {
+  //     console.log("Error fetching cars", error);
+  //   } finally {
+  //     setCarsLoading(false);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   fetchCars();
+  // }, []);
 
   const handleSelectedCar = (car) => {
-    // setForm(car);
+    setSelectedCar(car);
   };
+
+  const handleClickOpenCarForm = (user) => {
+    setSelectedCar(user);
+    setOpenCarForm(true);
+  };
+
+  const handleCloseCarForm = (user) => {
+    setSelectedCar(null);
+    setOpenCarForm(false);
+  };
+
+  const handleDeleteCar = async (carId) => {
+    try {
+      await deleteDoc(doc(db, "cars", carId));
+      refreshCars();
+    } catch (error) {
+      console.error("Error deleting car: ", error);
+    }
+  };
+
+  // Handle pagination logic
+  const startIndex = (pageNumber - 1) * carsPerPage;
+  const currentCars = filteredCars.slice(startIndex, startIndex + carsPerPage);
+  const totalPages = Math.ceil(filteredCars.length / carsPerPage);
 
   const buttonStyles = {
     backgroundColor: "#001023",
@@ -77,90 +96,67 @@ function Cars() {
     "&:hover": { backgroundColor: "#333" },
   };
 
-
   return (
-    <Box sx={{ padding: 4 }}>
-      <Grid container spacing={8}>
+    <Box>
+      <Grid container spacing={8} sx={{ paddingX: 4 }}>
         {/* List of Cars */}
-        <Grid item xs={12} md={6}>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-            <Typography variant="h6">Available Cars</Typography>
-            {/* // refresh icon */}
-          <Button
-            onClick={fetchCars}
-            variant="outlined"
-            color="primary"
-            size="small"
-            sx={{ mt: 2 }}
-            aria-label="Refresh cars"
+        <Grid item xs={12}>
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+            mb={2}
           >
-             <RefreshIcon/>
-          </Button>
-          </Box>
-          {carsLoading ? <CircularProgress size={24} /> : cars && cars.length ? cars.map((car, index) => (
-           <CarCard my={1} handleClick={() => handleSelectedCar(car)}car={car} /> 
-          )): <Typography variant="body2">No cars available</Typography> }
-        </Grid>
-
-        {/* Add Car Form */}
-        <Grid item xs={12} md={6}>
-          <Box display="flex" justifyContent="space-between" alignItems="center" >
-          <Typography variant="h6" mb={2}>
-            Add a New Car
-          </Typography>
-          
-          </Box>
-          <Box display="flex" flexDirection="column" gap={2}>
-            {error && (
-              <Typography color="error" variant="body2">
-                {error}
-              </Typography>
-            )}
-            <TextField
-              label="Plate"
-              variant="outlined"
-              name="plate"
-              value={form.plate}
-              onChange={handleInputChange}
-              aria-label="Car plate"
-            />
-            <TextField
-              label="Model"
-              variant="outlined"
-              name="model"
-              value={form.model}
-              onChange={handleInputChange}
-              aria-label="Car model"
-            />
-            <TextField
-              label="Driver Name"
-              variant="outlined"
-              name="driverName"
-              value={form.driverName}
-              onChange={handleInputChange}
-              aria-label="Driver name"
-            />
-            <TextField
-              label="Driver Phone"
-              variant="outlined"
-              name="driverPhone"
-              value={form.driverPhone}
-              onChange={handleInputChange}
-              aria-label="Driver phone number"
-            />
+            {/* <Typography variant="h6">Available Cars</Typography> */}
+            {/* // refresh icon */}
+            <Box flexGrow={1}>
+              <SearchField
+                searchQuery={searchQuery}
+                onSearchChange={(e) => setSearchQuery(e.target.value)}
+                label="Search by plate, model or diver name "
+              />
+            </Box>
             <Button
-              variant="contained"
-              onClick={handleAddCar}
-              sx={buttonStyles}
-              disabled={loading}
-              aria-label="Add car"
-            
+              onClick={() => refreshCars()}
+              variant="outlined"
+              color="primary"
+              size="small"
+              aria-label="Refresh cars"
             >
-              {loading ? <CircularProgress size={24} sx={{ color: "#fff" }} /> : "Add"}
+              <RefreshIcon />
             </Button>
           </Box>
+
+          {carsLoading ? (
+            <CircularProgressLoading />
+          ) : currentCars && currentCars.length ? (
+            currentCars.map((car, index) => (
+              <CarCard
+                key={index}
+                my={1}
+                car={car}
+                handleDeleteCar={handleDeleteCar}
+                handleClickOpenCarForm={handleClickOpenCarForm}
+                handleCloseAccountForm={handleCloseCarForm}
+              />
+            ))
+          ) : (
+            <Typography variant="body2">No cars available</Typography>
+          )}
         </Grid>
       </Grid>
+
+      <YookePagination
+        page={pageNumber}
+        count={totalPages}
+        onChange={(e, page) => setPageNumber(page)}
+      />
+
+      <CarForm
+        open={openCarForm}
+        handleClose={handleCloseCarForm}
+        car={selectedCar}
+      />
     </Box>
   );
 }

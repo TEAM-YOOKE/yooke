@@ -15,6 +15,7 @@ import SearchField from "../components/inputs/SearchField";
 import FilterChips from "../components/inputs/FilterChips";
 import { CircularProgress } from "@mui/material";
 import AdminAddNew from "./AdminAddNew";
+import useAccounts from "../hooks/accounts";
 
 const AdminUsersList = () => {
   const [loading, setLoading] = useState(true);
@@ -25,45 +26,54 @@ const AdminUsersList = () => {
   const [pageNumber, setPageNumber] = useState(1); // Current page number
   const usersPerPage = 6; // Fixed number of users per page
   const [openAccountForm, setOpenAccountForm] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+
+  const { accounts, refreshAccounts, accountsLoading, accountsError } =
+    useAccounts();
+
+  console.log(accounts);
 
   // Fetch users from Firestore
-  useEffect(() => {
-    setLoading(true);
-    const q = query(collection(db, "accounts"));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const usersData = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setUsers(usersData);
-      setLoading(false);
-    });
+  // useEffect(() => {
+  //   setLoading(true);
+  //   const q = query(collection(db, "accounts"));
+  //   const unsubscribe = onSnapshot(q, (querySnapshot) => {
+  //     const usersData = querySnapshot.docs.map((doc) => ({
+  //       id: doc.id,
+  //       ...doc.data(),
+  //     }));
+  //     setUsers(usersData);
+  //     setLoading(false);
+  //   });
 
-    return () => unsubscribe();
-  }, []);
+  //   return () => unsubscribe();
+  // }, []);
 
   // Apply filters and search query when data or filter changes
   useEffect(() => {
-    const filtered = users.filter((user) => {
+    const filtered = accounts?.filter((account) => {
       const matchesSearchQuery =
-        user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.company.toLowerCase().includes(searchQuery.toLowerCase());
+        account.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        account.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        account.username?.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesAccountType =
-        selectedFilter === "All" || user.accountType === selectedFilter;
+        selectedFilter === "All" || account.accountType === selectedFilter;
 
       return matchesSearchQuery && matchesAccountType;
     });
 
     setFilteredUsers(filtered);
     setPageNumber(1); // Reset to the first page when filters change
-  }, [users, searchQuery, selectedFilter]);
+  }, [accounts, searchQuery, selectedFilter]);
 
-  const handleClickOpenAccountForm = () => {
+  const handleClickOpenAccountForm = (user) => {
+    setSelectedUser(user);
     setOpenAccountForm(true);
   };
 
-  const handleCloseAccountForm = () => {
+  const handleCloseAccountForm = (user) => {
+    setSelectedUser(null);
     setOpenAccountForm(false);
   };
 
@@ -71,6 +81,7 @@ const AdminUsersList = () => {
   const handleDelete = async (id) => {
     try {
       await deleteDoc(doc(db, "accounts", id));
+      refreshAccounts();
     } catch (error) {
       console.error("Error deleting user: ", error);
     }
@@ -78,11 +89,11 @@ const AdminUsersList = () => {
 
   // Handle pagination logic
   const startIndex = (pageNumber - 1) * usersPerPage;
-  const currentUsers = filteredUsers.slice(
+  const currentUsers = filteredUsers?.slice(
     startIndex,
     startIndex + usersPerPage
   );
-  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+  const totalPages = Math.ceil(filteredUsers?.length / usersPerPage);
 
   // Render component
   return (
@@ -91,7 +102,7 @@ const AdminUsersList = () => {
       <SearchField
         searchQuery={searchQuery}
         onSearchChange={(e) => setSearchQuery(e.target.value)}
-        label="Search by email or company"
+        label="Search by email, username or company"
       />
 
       {/* Filter Chips */}
@@ -108,7 +119,7 @@ const AdminUsersList = () => {
       //   gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
       // }}
       >
-        {loading ? (
+        {accountsLoading ? (
           <Box
             sx={{
               height: "50vh",
@@ -120,15 +131,19 @@ const AdminUsersList = () => {
             <CircularProgress />
           </Box>
         ) : (
-          currentUsers.map((user) => (
-            <AccountCard
-              user={user}
-              key={user.id}
-              handleDelete={() => handleDelete(user.id)}
-              handleClickOpenAccountForm = {handleClickOpenAccountForm}
-              handleCloseAccountForm = {handleCloseAccountForm}
-              
-            />
+          currentUsers?.map((user) => (
+            <Box
+              sx={{ cursor: "pointer", ":hover": { bgcolor: "#f0fbfb" } }}
+              // onClick={() => handleClickOpenAccountForm(user)}
+            >
+              <AccountCard
+                user={user}
+                key={user.id}
+                handleDelete={() => handleDelete(user.id)}
+                handleClickOpenAccountForm={handleClickOpenAccountForm}
+                handleCloseAccountForm={handleCloseAccountForm}
+              />
+            </Box>
           ))
         )}
       </List>
@@ -139,7 +154,11 @@ const AdminUsersList = () => {
         count={totalPages}
         onChange={(e, page) => setPageNumber(page)}
       />
-      <AdminAddNew open={openAccountForm} handleClose={handleCloseAccountForm} />
+      <AdminAddNew
+        open={openAccountForm}
+        handleClose={handleCloseAccountForm}
+        user={selectedUser}
+      />
     </Box>
   );
 };
