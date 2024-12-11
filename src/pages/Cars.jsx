@@ -1,33 +1,52 @@
 import React, { useEffect, useState } from "react";
-import { Box, Button, Grid, TextField, Typography, CircularProgress } from "@mui/material";
+import {
+  Box,
+  Button,
+  Grid,
+  TextField,
+  Typography,
+  CircularProgress,
+} from "@mui/material";
 import CarCard from "../components/CarCard";
 import { db } from "../firebase-config";
-import { addDoc, collection, query, getDocs } from "firebase/firestore";
-import RefreshIcon from '@mui/icons-material/Refresh';
+import {
+  addDoc,
+  collection,
+  query,
+  getDocs,
+  doc,
+  updateDoc,
+  deleteDoc,
+} from "firebase/firestore";
+import RefreshIcon from "@mui/icons-material/Refresh";
+
 function Cars() {
   const [cars, setCars] = useState([]);
   const [form, setForm] = useState({
+    id: "",
     plate: "",
     model: "",
     driverName: "",
     driverPhone: "",
-    passengers:[]
+    passengers: [],
   });
   const [carsLoading, setCarsLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const fetchCars  = async () => {
+  const fetchCars = async () => {
     try {
-      setCarsLoading(true)
+      setCarsLoading(true);
       const q = query(collection(db, "cars"));
-    const querySnapshot = await getDocs(q);
-    const carsData = querySnapshot.docs.map((doc) => doc.data());
-    setCars(carsData);
-      
+      const querySnapshot = await getDocs(q);
+      const carsData = querySnapshot.docs.map((doc) => ({
+        id: doc.id, // Include document ID
+        ...doc.data(),
+      }));
+      setCars(carsData);
     } catch (error) {
       console.log("Error fetching cars", error);
-    }finally{
+    } finally {
       setCarsLoading(false);
     }
   };
@@ -57,9 +76,15 @@ function Cars() {
     setLoading(true);
     try {
       const newCar = { ...form, createdAt: new Date() };
-      await addDoc(collection(db, "cars"), newCar);
-      setCars([...cars, newCar]);
-      setForm({ plate: "", model: "", driverName: "", driverPhone: "" });
+      const docRef = await addDoc(collection(db, "cars"), newCar);
+      setCars([...cars, { id: docRef.id, ...newCar }]);
+      setForm({
+        id: "",
+        plate: "",
+        model: "",
+        driverName: "",
+        driverPhone: "",
+      });
     } catch (err) {
       setError("Failed to add car. Please try again.");
     } finally {
@@ -67,8 +92,44 @@ function Cars() {
     }
   };
 
+  const handleEditCar = async () => {
+    if (!validateForm()) return;
+
+    setLoading(true);
+    try {
+      const carDocRef = doc(db, "cars", form.id);
+      const updatedCar = { ...form };
+      await updateDoc(carDocRef, updatedCar);
+      setCars(cars.map((car) => (car.id === form.id ? updatedCar : car)));
+      setForm({
+        id: "",
+        plate: "",
+        model: "",
+        driverName: "",
+        driverPhone: "",
+      });
+    } catch (err) {
+      setError("Failed to update car. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteCar = async (carId) => {
+    try {
+      setLoading(true);
+      const carDocRef = doc(db, "cars", carId);
+      await deleteDoc(carDocRef);
+      setCars(cars.filter((car) => car.id !== carId));
+    } catch (err) {
+      setError("Failed to delete car. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSelectedCar = (car) => {
-    // setForm(car);
+    setForm(car); // Populate form with selected car data
   };
 
   const buttonStyles = {
@@ -77,38 +138,56 @@ function Cars() {
     "&:hover": { backgroundColor: "#333" },
   };
 
-
   return (
     <Box sx={{ padding: 4 }}>
       <Grid container spacing={8}>
         {/* List of Cars */}
         <Grid item xs={12} md={6}>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-            <Typography variant="h6">Available Cars</Typography>
-            {/* // refresh icon */}
-          <Button
-            onClick={fetchCars}
-            variant="outlined"
-            color="primary"
-            size="small"
-            sx={{ mt: 2 }}
-            aria-label="Refresh cars"
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+            mb={2}
           >
-             <RefreshIcon/>
-          </Button>
+            <Typography variant="h6">Available Cars</Typography>
+            <Button
+              onClick={fetchCars}
+              variant="outlined"
+              color="primary"
+              size="small"
+              sx={{ mt: 2 }}
+              aria-label="Refresh cars"
+            >
+              <RefreshIcon />
+            </Button>
           </Box>
-          {carsLoading ? <CircularProgress size={24} /> : cars && cars.length ? cars.map((car, index) => (
-           <CarCard my={1} handleClick={() => handleSelectedCar(car)}car={car} /> 
-          )): <Typography variant="body2">No cars available</Typography> }
+          {carsLoading ? (
+            <CircularProgress size={24} />
+          ) : cars && cars.length ? (
+            cars.map((car) => (
+              <CarCard
+                key={car.id}
+                car={car}
+                handleClick={() => handleSelectedCar(car)}
+                handleEdit={() => handleEditCar(car)}
+                handleDelete={() => handleDeleteCar(car.id)}
+              />
+            ))
+          ) : (
+            <Typography variant="body2">No cars available</Typography>
+          )}
         </Grid>
 
-        {/* Add Car Form */}
+        {/* Add/Edit Car Form */}
         <Grid item xs={12} md={6}>
-          <Box display="flex" justifyContent="space-between" alignItems="center" >
-          <Typography variant="h6" mb={2}>
-            Add a New Car
-          </Typography>
-          
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            <Typography variant="h6" mb={2}>
+              {form.id ? "Edit Car" : "Add a New Car"}
+            </Typography>
           </Box>
           <Box display="flex" flexDirection="column" gap={2}>
             {error && (
@@ -150,13 +229,18 @@ function Cars() {
             />
             <Button
               variant="contained"
-              onClick={handleAddCar}
+              onClick={form.id ? handleEditCar : handleAddCar}
               sx={buttonStyles}
               disabled={loading}
-              aria-label="Add car"
-            
+              aria-label={form.id ? "Edit car" : "Add car"}
             >
-              {loading ? <CircularProgress size={24} sx={{ color: "#fff" }} /> : "Add"}
+              {loading ? (
+                <CircularProgress size={24} sx={{ color: "#fff" }} />
+              ) : form.id ? (
+                "Update"
+              ) : (
+                "Add"
+              )}
             </Button>
           </Box>
         </Grid>
