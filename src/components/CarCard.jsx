@@ -6,6 +6,7 @@ import {
   Grid,
   Box,
   IconButton,
+  Badge,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -41,9 +42,15 @@ const CarCard = ({
             justifyContent="space-between"
             alignItems="center"
           >
-            <Typography variant="h6" fontWeight="bold">
-              {plate}
-            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <Badge badgeContent={`${4 - car.passengers.length === 0 ? "full" : (4 - car.passengers.length + "slots")} `} color="secondary" >
+                <Typography variant="h6" fontWeight="bold">
+                  {plate}
+                </Typography>
+              </Badge>
+
+            </Box>
+
             {showActions && (
               <Box display="flex" gap={2} alignItems="center">
                 <IconButton
