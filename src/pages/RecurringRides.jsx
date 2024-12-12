@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Box, Button, Typography, TextField, Chip, Grid } from "@mui/material";
 import CarCard from "../components/CarCard";
 import RefreshIcon from "@mui/icons-material/Refresh";
@@ -12,84 +12,78 @@ import {
   doc,
 } from "firebase/firestore";
 import { db } from "../firebase-config";
-import CircularProgress from "@mui/material/CircularProgress";
-import CarForm from "../components/dialogs/CarForm";
 import CircularProgressLoading from "../components/feedbacks/CircularProgressLoading";
+import CarForm from "../components/dialogs/CarForm";
 import useCars from "../hooks/cars";
 import usePassengers from "../hooks/passengers";
+import selectRide from "../assets/images/select_ride.svg";
 
 const RecurringRides = () => {
-  const [selectedCar, setSelectedCar] = useState({});
-  const [selectedPerson, setSelectedPerson] = useState({});
-  // const [passengersLoading, setPassengersLoading] = useState(false);
-  // const [passengers, setPassengers] = useState([]);
+  const [selectedCar, setSelectedCar] = useState(null);
+  const [selectedPerson, setSelectedPerson] = useState(null);
   const [addLoading, setAddLoading] = useState(false);
   const [openCarForm, setOpenCarForm] = useState(false);
 
-  const { cars, refreshCars, carsLoading, carsError } = useCars();
-  const { passengers, passengersLoading, refreshPassengers, passengersError } =
-    usePassengers();
-
-  console.log("assengers", passengers);
+  const { cars, refreshCars, carsLoading } = useCars();
+  const { passengers, passengersLoading, refreshPassengers } = usePassengers();
 
   const handleCarSelect = (car) => {
-    console.log(car);
     setSelectedCar(car);
   };
 
   const handleAddPersonToCar = async (e) => {
     e.preventDefault();
-    console.log(selectedCar);
-    console.log(selectedPerson);
+    if (!selectedCar || !selectedPerson) {
+      console.error("Both car and person must be selected");
+      return;
+    }
 
     try {
       setAddLoading(true);
-      // Fetch the car document and update its passengers array
-      const q = query(
+      const carQuery = query(
         collection(db, "cars"),
         where("plate", "==", selectedCar.plate)
       );
-      const querySnapshot = await getDocs(q);
+      const carSnapshot = await getDocs(carQuery);
 
-      if (!querySnapshot.empty) {
-        const carDoc = querySnapshot.docs[0];
-        const carDocRef = doc(db, "cars", carDoc.id); // Get the document reference
+      if (!carSnapshot.empty) {
+        const carDoc = carSnapshot.docs[0];
+        const carDocRef = doc(db, "cars", carDoc.id);
         const carData = carDoc.data();
 
-        console.log("carData before update", carData);
-
-        // Add the selectedPerson email to the passengers field
         const updatedPassengers = [
           ...(carData.passengers || []),
-          selectedPerson.username || selectedPerson.email,
+          selectedPerson,
         ];
-        await updateDoc(carDocRef, { passengers: updatedPassengers }); // Update the document
-
-        console.log("Car passengers updated successfully");
+        await updateDoc(carDocRef, { passengers: updatedPassengers });
       } else {
         console.error("Car not found");
+        return;
       }
 
-      // Fetch the person document and update the assignedCar field
-      const personQ = query(
+      const personQuery = query(
         collection(db, "accounts"),
         where("email", "==", selectedPerson.email)
       );
-      const personQuerySnapshot = await getDocs(personQ);
+      const personSnapshot = await getDocs(personQuery);
 
-      if (!personQuerySnapshot.empty) {
-        const personDoc = personQuerySnapshot.docs[0];
-        const personDocRef = doc(db, "accounts", personDoc.id); // Get the document reference
-
-        await updateDoc(personDocRef, { assignedCar: true }); // Update the document
-
-        console.log("Person assignedCar field updated successfully");
+      if (!personSnapshot.empty) {
+        const personDoc = personSnapshot.docs[0];
+        const personDocRef = doc(db, "accounts", personDoc.id);
+        await updateDoc(personDocRef, { assignedCar: true });
       } else {
         console.error("Person not found");
+        return;
       }
-      setSelectedPerson({});
+
+      setSelectedPerson((prev) => null);
+
       refreshCars();
       refreshPassengers();
+      setSelectedCar((prev) => ({
+        ...prev,
+        passengers: [...prev.passengers, selectedPerson],
+      }));
     } catch (error) {
       console.error("Error adding person to car:", error);
     } finally {
@@ -97,26 +91,67 @@ const RecurringRides = () => {
     }
   };
 
-  const handleRemovePassengerFromCar = async (email) => {
+  const handleRemovePassengerFromCar = async (passenger) => {
+    if (
+      !window.confirm(
+        `Are you sure you want to remove "${
+          passenger.username || passenger.email
+        }" from car?`
+      )
+    )
+      return;
+    if (!selectedCar || !passenger) {
+      console.error("Car and passenger must be selected");
+      return;
+    }
+
     try {
       setAddLoading(true);
-      const personQ = query(
-        collection(db, "accounts"),
-        where("email", "==", email)
-      );
-      const personQuerySnapshot = await getDocs(personQ);
 
-      if (!personQuerySnapshot.empty) {
-        const personDoc = personQuerySnapshot.docs[0];
+      const personQuery = query(
+        collection(db, "accounts"),
+        where("email", "==", passenger.email)
+      );
+      const personSnapshot = await getDocs(personQuery);
+
+      if (!personSnapshot.empty) {
+        const personDoc = personSnapshot.docs[0];
         const personDocRef = doc(db, "accounts", personDoc.id);
         await updateDoc(personDocRef, { assignedCar: false });
-
-        console.log("Person assignedCar field updated successfully");
       } else {
-        console.error("Person not found");
+        console.error("Passenger not found");
+        return;
       }
+
+      const carQuery = query(
+        collection(db, "cars"),
+        where("plate", "==", selectedCar.plate)
+      );
+      const carSnapshot = await getDocs(carQuery);
+
+      if (!carSnapshot.empty) {
+        const carDoc = carSnapshot.docs[0];
+        const carDocRef = doc(db, "cars", carDoc.id);
+        const carData = carDoc.data();
+
+        const updatedPassengers = carData.passengers.filter(
+          (p) => p.email !== passenger.email
+        );
+        await updateDoc(carDocRef, { passengers: updatedPassengers });
+      } else {
+        console.error("Car not found");
+        return;
+      }
+      setSelectedCar((prev) => {
+        const newPassengers = prev.passengers.filter(
+          (p) => p.email !== passenger.email
+        );
+        return { ...prev, passengers: newPassengers };
+      });
+      refreshPassengers();
+      refreshCars();
     } catch (error) {
-      console.error("Error adding person to car:", error);
+      console.error("Error removing passenger from car:", error);
     } finally {
       setAddLoading(false);
     }
@@ -125,13 +160,13 @@ const RecurringRides = () => {
   const handleOpenCarForm = () => {
     setOpenCarForm(true);
   };
+
   const handleCloseCarForm = () => {
     setOpenCarForm(false);
   };
 
   return (
     <Grid container p={2}>
-      {/* Left Section */}
       <Grid item md={7} size={4}>
         <Box
           sx={{
@@ -142,131 +177,132 @@ const RecurringRides = () => {
         >
           <Button
             variant="contained"
-            type="button"
-            sx={{
-              height: "47px",
-              textTransform: "none",
-              boxShadow: "none",
-              borderRadius: "9px",
-              marginY: 1,
-            }}
             onClick={handleOpenCarForm}
+            sx={{ textTransform: "none", borderRadius: 9 }}
           >
             Add new car
           </Button>
           <Button
             onClick={() => {
-              refreshPassengers();
               refreshCars();
+              refreshPassengers();
             }}
             variant="outlined"
-            color="primary"
-            size="small"
-            aria-label="Refresh cars"
           >
             <RefreshIcon />
           </Button>
         </Box>
+
         {carsLoading ? (
           <CircularProgressLoading />
         ) : (
-          <Box>
-            {cars?.map((car, index) => (
-              <Box
-                key={index}
-                borderRadius={2}
-                bgcolor={selectedCar.plate === car.plate ? "#c4e7e7" : ""}
-                onClick={() => handleCarSelect(car)}
-              >
-                <CarCard car={car} showActions={false} showPassengers={true} />
-              </Box>
-            ))}
-          </Box>
+          cars?.map((car, index) => (
+            <Box
+              key={index}
+              borderRadius={2}
+              bgcolor={selectedCar?.plate === car.plate ? "#c4e7e7" : ""}
+              onClick={() => handleCarSelect(car)}
+            >
+              <CarCard car={car} showActions={false} showPassengers={true} />
+            </Box>
+          ))
         )}
       </Grid>
 
-      {/* Right Section */}
-      <Grid md={5} item p={8} sx={{ position: "fixed", right: 0 }}>
-        <Box component="form" onSubmit={handleAddPersonToCar}>
-          {selectedCar && selectedCar.plate ? (
+      <Grid
+        md={5}
+        item
+        p={8}
+        sx={{ position: "fixed", width: "100%", right: 0 }}
+      >
+        {!selectedCar ? (
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "100%",
+              gap: 2,
+              textAlign: "center",
+              color: "gray",
+            }}
+          >
             <Typography variant="h6">
-              Rides for car with model: <b>{selectedCar.model}</b> and driver{" "}
-              <b>{selectedCar.driverName}</b>
+              <b>No car selected</b>
             </Typography>
-          ) : (
-            <Typography variant="h6">Select a car to add a person</Typography>
-          )}
-
-          <Box sx={{ display: "flex", gap: 4 }}>
-            <Autocomplete
-              disabled={
-                !selectedCar.plate || selectedCar.passengers?.length >= 4
-              }
-              disablePortal
-              options={
-                passengers?.filter((passenger) => !passenger.assignedCar) ?? []
-              }
-              getOptionLabel={(option) =>
-                (option.username || option.email) +
-                " - " +
-                (option?.pickUpLocation || "")
-              }
-              onChange={(event, newValue) => setSelectedPerson(newValue)}
-              sx={{ width: 300 }}
-              renderInput={(params) => (
-                <TextField name="person" {...params} label="Select Person" />
-              )}
+            <Typography>Select a car to add passengers to the ride.</Typography>
+            <Box
+              component="img"
+              src={selectRide}
+              alt="No Car"
+              sx={{ width: "50%", opacity: 0.8 }}
             />
-
-            <Button
-              variant="contained"
-              disableElevation
-              sx={{
-                height: "47px",
-                textTransform: "none",
-                boxShadow: "none",
-                borderRadius: "9px",
-                marginBottom: "16px",
-              }}
-              type="submit"
-              disabled={addLoading}
-            >
-              {addLoading ? "Adding..." : "Add to this ride"}
-            </Button>
           </Box>
-        </Box>
+        ) : (
+          <>
+            <Box component="form" onSubmit={handleAddPersonToCar}>
+              {selectedCar ? (
+                <Typography variant="h6">
+                  Rides for car with model: <b>{selectedCar.model}</b> and
+                  driver <b>{selectedCar.driverName}</b>
+                </Typography>
+              ) : (
+                <Typography variant="h6">
+                  Select a car to add a person
+                </Typography>
+              )}
 
-        {/* Selected People */}
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            // flexWrap: "wrap",
-            gap: 1,
-          }}
-        >
-          {selectedCar?.passengers?.map((passenger, index) => (
-            <Box>
-              <Chip
-                key={index}
-                label={passenger}
-                onDelete={() => handleRemovePassengerFromCar(passenger)}
-                sx={{
-                  textAlign: "left",
-                  backgroundColor: "#e9f5f9",
-                  color: "#333",
-                  fontWeight: "bold",
-                }}
-              />
+              <Box sx={{ display: "flex", gap: 2 }}>
+                <Autocomplete
+                  disabled={!selectedCar || selectedCar.passengers?.length >= 4}
+                  options={passengers?.filter((p) => !p.assignedCar) ?? []}
+                  getOptionLabel={(option) =>
+                    `${option.username || option.email} - ${
+                      option.pickUpLocation || ""
+                    }`
+                  }
+                  onChange={(event, newValue) => setSelectedPerson(newValue)}
+                  renderInput={(params) => (
+                    <TextField {...params} label="Select Person" />
+                  )}
+                  value={selectedPerson} // Bind value to the selectedPerson state
+                  sx={{ flexGrow: 2 }}
+                />
+
+                <Button
+                  variant="contained"
+                  type="submit"
+                  disabled={addLoading}
+                  sx={{ textTransform: "none", borderRadius: 9, flexGrow: 0.5 }}
+                >
+                  {addLoading ? "Adding..." : "Add to this ride"}
+                </Button>
+              </Box>
             </Box>
-          ))}
-        </Box>
 
-        {/* Additional Information */}
-        <Typography variant="body1">
-          Who is going where? Name + place they are going
-        </Typography>
+            <Box
+              sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 2 }}
+            >
+              {selectedCar?.passengers?.map((passenger, index) => (
+                <Box>
+                  <Chip
+                    key={index}
+                    label={passenger.username || passenger.email}
+                    onDelete={() => handleRemovePassengerFromCar(passenger)}
+                    sx={{
+                      backgroundColor: "#e9f5f9",
+                      fontWeight: "bold",
+                      textAlign: "left",
+                    }}
+                  />
+                </Box>
+              ))}
+            </Box>
+          </>
+        )}
       </Grid>
+
       <CarForm open={openCarForm} handleClose={handleCloseCarForm} />
     </Grid>
   );
