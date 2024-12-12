@@ -77,11 +77,13 @@ function Cars() {
   };
 
   const handleDeleteCar = async (carId) => {
-    try {
-      await deleteDoc(doc(db, "cars", carId));
-      refreshCars();
-    } catch (error) {
-      console.error("Error deleting car: ", error);
+    if (window.confirm("Are you sure you want to delete car?")) {
+      try {
+        await deleteDoc(doc(db, "cars", carId));
+        refreshCars();
+      } catch (error) {
+        console.error("Error deleting car: ", error);
+      }
     }
   };
 
@@ -138,6 +140,7 @@ function Cars() {
                 handleDeleteCar={handleDeleteCar}
                 handleClickOpenCarForm={handleClickOpenCarForm}
                 handleCloseAccountForm={handleCloseCarForm}
+                showPassengers={true}
               />
             ))
           ) : (

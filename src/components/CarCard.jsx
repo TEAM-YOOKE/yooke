@@ -42,19 +42,20 @@ const CarCard = ({
             justifyContent="space-between"
             alignItems="center"
           >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+              <Typography variant="h6" fontWeight="bold">
+                {plate}
+              </Typography>
               <Badge
                 badgeContent={`${
                   4 - car.passengers.length === 0
                     ? "full"
+                    : 4 - car.passengers.length === 1
+                    ? "1slot"
                     : 4 - car.passengers.length + "slots"
                 } `}
-                color="secondary"
-              >
-                <Typography variant="h6" fontWeight="bold">
-                  {plate}
-                </Typography>
-              </Badge>
+                color={car.passengers.length >= 4 ? "error" : "secondary"}
+              />
             </Box>
 
             {showActions && (
@@ -96,6 +97,12 @@ const CarCard = ({
             {driverPhone}
           </Typography>
         </Grid>
+        <Grid item>
+          <Typography variant="body2">Stop Points: </Typography>
+          <Typography variant="body2" fontWeight="bold">
+            Buduburam
+          </Typography>
+        </Grid>
 
         {showPassengers && (
           <Grid item>
@@ -111,7 +118,7 @@ const CarCard = ({
                       key={index}
                       mr={1}
                     >
-                      {passenger},
+                      {passenger.username || passenger.email},
                     </Typography>
                   );
                 })
