@@ -70,11 +70,7 @@ const Calendar = () => {
                   }}
                 >
                   {cars?.map((car, index) => (
-                    <Box
-                      key={index}
-                      cursor="pointer"
-                      onClick={() => handleCarSelect(car)}
-                    >
+                    <Box key={index} cursor="pointer">
                       <CarCard
                         car={car}
                         showActions={false}

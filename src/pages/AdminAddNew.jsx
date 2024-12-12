@@ -17,6 +17,8 @@ import { db, auth } from "../firebase-config";
 import { addDoc, collection, doc, updateDoc, getDoc } from "firebase/firestore";
 import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
 
+import useAccounts from "../hooks/accounts";
+
 const AdminAddNew = ({ open, handleClose, user }) => {
   const [formData, setFormData] = useState({
     email: "",
@@ -30,6 +32,7 @@ const AdminAddNew = ({ open, handleClose, user }) => {
     message: "",
     severity: "success",
   });
+  const { refreshAccounts } = useAccounts();
 
   useEffect(() => {
     // Populate form fields when editing
@@ -129,6 +132,7 @@ const AdminAddNew = ({ open, handleClose, user }) => {
         company: "",
         accountType: "Car owner",
       });
+      refreshAccounts();
       handleClose();
     } catch (error) {
       console.error("Failed to create account", error);
