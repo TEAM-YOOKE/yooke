@@ -77,6 +77,7 @@ const Login = ({ redirectUrl }) => {
       }
     } catch (error) {
       setError("Failed to login. Please check your email and password.");
+      console.log("Error logging in-->", error);
     } finally {
       setLoading(false);
     }

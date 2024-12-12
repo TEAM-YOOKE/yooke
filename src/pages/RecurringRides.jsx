@@ -174,10 +174,9 @@ const RecurringRides = () => {
             {cars?.map((car, index) => (
               <Box
                 key={index}
-                cursor="pointer"
-                onClick={() => handleCarSelect(car)}
                 borderRadius={2}
                 bgcolor={selectedCar.plate === car.plate ? "#c4e7e7" : ""}
+                onClick={() => handleCarSelect(car)}
               >
                 <CarCard car={car} showActions={false} showPassengers={true} />
               </Box>

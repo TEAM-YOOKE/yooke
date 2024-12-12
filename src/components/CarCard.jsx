@@ -43,12 +43,18 @@ const CarCard = ({
             alignItems="center"
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <Badge badgeContent={`${4 - car.passengers.length === 0 ? "full" : (4 - car.passengers.length + "slots")} `} color="secondary" >
+              <Badge
+                badgeContent={`${
+                  4 - car.passengers.length === 0
+                    ? "full"
+                    : 4 - car.passengers.length + "slots"
+                } `}
+                color="secondary"
+              >
                 <Typography variant="h6" fontWeight="bold">
                   {plate}
                 </Typography>
               </Badge>
-
             </Box>
 
             {showActions && (
