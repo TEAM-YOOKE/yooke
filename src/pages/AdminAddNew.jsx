@@ -24,6 +24,9 @@ const AdminAddNew = ({ open, handleClose, user }) => {
     email: "",
     company: "",
     accountType: "Car owner",
+    username: "",
+    whatsappNumber: "",
+    pickUpLocation: "",
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -36,17 +39,25 @@ const AdminAddNew = ({ open, handleClose, user }) => {
 
   useEffect(() => {
     // Populate form fields when editing
+
     if (user) {
+      console.log(user);
       setFormData({
         email: user.email || "",
         company: user.company || "",
         accountType: user.accountType || "Car owner",
+        username: user.username || "",
+        whatsappNumber: user.whatsappNumber || "",
+        pickUpLocation: user.pickUpLocation || "",
       });
     } else {
       setFormData({
         email: "",
         company: "",
         accountType: "Car owner",
+        username: "",
+        whatsappNumber: "",
+        pickUpLocation: "",
       });
     }
   }, [user]);
@@ -56,7 +67,7 @@ const AdminAddNew = ({ open, handleClose, user }) => {
       email: (val) =>
         /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(val) ||
         "Invalid email format",
-
+      // add username, whatsappnumber and pickuplocation validators
       company: (val) => val.trim() !== "" || "Company name is required",
     };
     return validators[name] ? validators[name](value) : true;
@@ -131,6 +142,9 @@ const AdminAddNew = ({ open, handleClose, user }) => {
         email: "",
         company: "",
         accountType: "Car owner",
+        username: "",
+        whatsappNumber: "",
+        pickUpLocation: "",
       });
       refreshAccounts();
       handleClose();
@@ -147,7 +161,9 @@ const AdminAddNew = ({ open, handleClose, user }) => {
       setLoading(false);
     }
   };
-
+  const formFields = user
+    ? ["username", "email", "whatsappNumber", "pickUpLocation", "company"]
+    : ["email", "company"];
   return (
     <>
       <Dialog open={open} onClose={handleClose}>
@@ -155,7 +171,7 @@ const AdminAddNew = ({ open, handleClose, user }) => {
           {user ? "Update Account" : "Create New Account"}
         </DialogTitle>
         <DialogContent>
-          {["email", "company"].map((field) => (
+          {formFields.map((field) => (
             <TextField
               key={field}
               margin="dense"
