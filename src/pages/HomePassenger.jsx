@@ -2,7 +2,7 @@ import * as React from "react";
 // import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 // import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 // import { TimePicker } from "@mui/x-date-pickers/TimePicker";
-import { Box, Button } from "@mui/material";
+import { Box, Button, Snackbar, Alert } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useState, useContext } from "react";
 // import SelectLocation from "../components/SelectLocation";
@@ -21,6 +21,12 @@ function HomePassenger() {
   const [departureTime, setDepartureTime] = useState(null);
   const [selectedSeats, setSelectedSeats] = useState(1);
   const [loading, setLoading] = useState(false)
+
+  const [snackbar, setSnackbar] = useState({
+    open:false,
+    message: "",
+    severity: "success"
+  })
 
   console.log(auth.currentUser.email)
 
@@ -53,6 +59,12 @@ function HomePassenger() {
         const personDocRef = doc(db, "accounts", personDoc.id)
         await updateDoc(personDocRef, {pickUpLocation: pickupPoint })
         console.log("location updated")
+        setSnackbar({
+          open: true,
+          message: "Location updated",
+          severity: "success"
+        })
+   
       }else{
         console.log("person not found")
       }
@@ -80,7 +92,7 @@ function HomePassenger() {
 
     >
       
-     As an employee of XYZ company, a feet of cars will take care of your transportation. Please them know where they can pick you up
+     As an employee of XYZ company, a feet of cars will take care of your transportation. Please let them know where they can pick you up
     </Typography>
 
       <Box paddingTop={3}>
@@ -114,8 +126,22 @@ function HomePassenger() {
         }}
         onClick={handleUpdateLocation}
       >
-        {loading? "loading...": language.homePassenger.searchButton}
+        {loading? "loading...": "Update Location"}
       </Button>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+      >
+        <Alert
+          severity={snackbar.severity}
+          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
+
     </Box>
   );
 }
