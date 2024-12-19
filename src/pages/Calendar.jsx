@@ -6,7 +6,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import Grid2 from "@mui/material/Unstable_Grid2";
 import { Box, Grid, Typography } from "@mui/material";
-import CarCard from "../components/CarCard";
+import CarCard from "../components/cards/CarCard";
 import { PEOPLE, RECURRING_RIDES } from "../constants";
 import PeopleWithoutRidesCard from "../components/PeopleWithoutRidesCard";
 import { getDocs, query, collection, onSnapshot } from "firebase/firestore";

@@ -9,6 +9,7 @@ import RecurringRides from "./RecurringRides";
 import Calendar from "./Calendar";
 import Cars from "./Cars";
 import AdminNavbar from "../components/navbars/AdminNavbar";
+import Companies from "./Companies";
 
 function Admin() {
   const [tabValue, setTabValue] = useState(0);
@@ -36,11 +37,12 @@ function Admin() {
             overflowY: "auto",
           }}
         >
-          {tabValue === 0 && <AdminUsersList />}
-          {tabValue === 1 && <WaitingList />}
-          {tabValue === 2 && <Cars />}
-          {tabValue === 3 && <RecurringRides />}
-          {tabValue === 4 && <Calendar />}
+          {tabValue === 0 && <Companies />}
+          {tabValue === 1 && <AdminUsersList />}
+          {tabValue === 2 && <WaitingList />}
+          {tabValue === 3 && <Cars />}
+          {tabValue === 4 && <RecurringRides />}
+          {tabValue === 5 && <Calendar />}
         </Box>
       </Box>
     </>

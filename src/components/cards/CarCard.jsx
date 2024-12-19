@@ -22,6 +22,15 @@ const CarCard = ({
   const { plate, model, driverName, driverPhone, passengers } = car; // Destructure card data
   console.log("car--->", car);
 
+  const fetchCarPassengers = async (passengers) => {
+    const fetchPassengersPromises = passengers.map(async (passengerId) => {
+      const passengerRef = doc(db, "accounts", passengerId);
+    });
+
+    // Wait for all passenger updates to complete
+    await Promise.all(fetchPassengersPromises);
+  };
+
   return (
     <Card
       sx={{
@@ -118,7 +127,8 @@ const CarCard = ({
                       key={index}
                       mr={1}
                     >
-                      {passenger.username || passenger.email},
+                      {passenger.username || passenger.email}
+                      {passengers.length - 1 === index ? "" : ","}
                     </Typography>
                   );
                 })
