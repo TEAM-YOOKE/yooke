@@ -12,7 +12,7 @@ import {
   Grid,
   Autocomplete,
 } from "@mui/material";
-import { db } from "../../firebase-config";
+import { db, functions } from "../../firebase-config";
 import {
   addDoc,
   collection,
@@ -23,6 +23,7 @@ import {
   where,
 } from "firebase/firestore";
 import useCars from "../../hooks/cars";
+import { httpsCallable } from "firebase/functions";
 
 const CarForm = ({ open, handleClose, car }) => {
   const [formData, setFormData] = useState({
@@ -149,81 +150,39 @@ const CarForm = ({ open, handleClose, car }) => {
   //   }
   // };
 
-  const handleSubmit = async () => {
+  const createCar = httpsCallable(functions, "createCar");
+  const updateCar = httpsCallable(functions, "updateCar");
+
+  const handleCreateOrUpdateCar = async () => {
     if (!validateForm()) return;
-
-    setLoading(true);
     try {
+      setLoading(true);
+      let result;
       if (car) {
-        // if there is a change in number plate, check if the new number plate already exists
-        if (car.plate !== formData.plate) {
-          const q = query(
-            collection(db, "cars"),
-            where("plate", "==", formData.plate)
-          );
-          const querySnapshot = await getDocs(q);
-          if (!querySnapshot.empty) {
-            setSnackbar({
-              open: true,
-              message: "Car with the same plate already exists",
-              severity: "error",
-            });
-            setLoading(false);
-            return;
-          }
-        }
-
-        // Update existing car
-
-        const carDoc = doc(db, "cars", car.id);
-        await updateDoc(carDoc, { ...formData, updatedAt: new Date() });
-        setSnackbar({
-          open: true,
-          message: "Car details updated successfully",
-          severity: "success",
-        });
+        // result = await updateCar({
+        //   ...formData,
+        // });
+        console.log("car to update -->", car);
       } else {
-        // Add new car
-        // Check if a car with the same plate already exists
-        const q = query(
-          collection(db, "cars"),
-          where("plate", "==", formData.plate)
-        );
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-          setSnackbar({
-            open: true,
-            message: "Car with the same plate already exists",
-            severity: "error",
-          });
-          setLoading(false);
-          return;
-        }
-
-        await addDoc(collection(db, "cars"), {
+        result = await createCar({
           ...formData,
           passengers: [],
           createdAt: new Date(),
         });
-        setSnackbar({
-          open: true,
-          message: "Car created successfully",
-          severity: "success",
-        });
       }
-      setFormData({
-        plate: "",
-        model: "",
-        driverName: "",
-        driverPhone: "",
-      });
+
+      console.log(car ? "updated car" : "added car", "--->", result.data);
       handleClose();
       refreshCars();
     } catch (error) {
-      console.error("Failed to save car", error);
+      console.log(
+        car ? "Error updating car" : "Error creating car",
+        "--->",
+        error
+      );
       setSnackbar({
         open: true,
-        message: "Failed to save car. Please try again.",
+        message: error.message,
         severity: "error",
       });
     } finally {
@@ -302,6 +261,7 @@ const CarForm = ({ open, handleClose, car }) => {
                 onChange={handleChange}
                 error={!!errors.driverPhone}
                 helperText={errors.driverPhone}
+                disabled={loading}
                 fullWidth
               />
             </Grid>
@@ -312,7 +272,7 @@ const CarForm = ({ open, handleClose, car }) => {
             Cancel
           </Button>
           <Button
-            onClick={handleSubmit}
+            onClick={handleCreateOrUpdateCar}
             color="primary"
             variant="contained"
             disabled={loading}

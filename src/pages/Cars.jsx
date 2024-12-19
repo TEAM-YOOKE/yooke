@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Box, Button, Grid, Typography } from "@mui/material";
-import CarCard from "../components/CarCard";
+import CarCard from "../components/cards/CarCard";
 import { db } from "../firebase-config";
-import { collection, query, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { deleteDoc, doc, getDoc, updateDoc } from "firebase/firestore";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import CarForm from "../components/dialogs/CarForm";
 import YookePagination from "../components/navbars/Pagination";
@@ -25,7 +25,7 @@ function Cars() {
 
   // Apply filters and search query when data or filter changes
   useEffect(() => {
-    const filtered = cars.filter((car) => {
+    const filtered = cars?.filter((car) => {
       const matchesSearchQuery =
         car.plate.toLowerCase().includes(searchQuery.toLowerCase()) ||
         car.driverName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -77,12 +77,34 @@ function Cars() {
   };
 
   const handleDeleteCar = async (carId) => {
-    if (window.confirm("Are you sure you want to delete car?")) {
+    if (window.confirm("Are you sure you want to delete this car?")) {
       try {
+        // Retrieve the car document and its passengers
+        const carDoc = await getDoc(doc(db, "cars", carId));
+        if (carDoc.exists()) {
+          const carData = carDoc.data();
+
+          // Check if the car has passengers
+          if (carData.passengers && carData.passengers.length > 0) {
+            const updatePromises = carData.passengers.map(async (passenger) => {
+              const passengerRef = doc(db, "accounts", passenger.id);
+              await updateDoc(passengerRef, { assignedCar: false });
+            });
+
+            // Wait for all passenger updates to complete
+            await Promise.all(updatePromises);
+          }
+        }
+
+        // Delete the car document
         await deleteDoc(doc(db, "cars", carId));
+
+        // Refresh the car list
         refreshCars();
+        alert("Car and its associations were successfully deleted.");
       } catch (error) {
-        console.error("Error deleting car: ", error);
+        console.error("Error deleting car and updating passengers: ", error);
+        alert("An error occurred while deleting the car. Please try again.");
       }
     }
   };

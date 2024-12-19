@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Box, Button, Typography, TextField, Chip, Grid } from "@mui/material";
-import CarCard from "../components/CarCard";
+import CarCard from "../components/cards/CarCard";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import Autocomplete from "@mui/material/Autocomplete";
 import {

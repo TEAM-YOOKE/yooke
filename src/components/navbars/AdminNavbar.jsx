@@ -16,8 +16,16 @@ import { LanguageContext } from "../../helpers/LanguageContext";
 import AdminAddNew from "../../pages/AdminAddNew";
 import { Box } from "@mui/material";
 import CarForm from "../dialogs/CarForm";
+import BusinessIcon from "@mui/icons-material/Business";
+import PeopleIcon from "@mui/icons-material/People";
+import HourglassTopIcon from "@mui/icons-material/HourglassTop";
+import TimeToLeaveIcon from "@mui/icons-material/TimeToLeave";
+import LoopIcon from "@mui/icons-material/Loop";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import CompanyForm from "../dialogs/CompanyForm";
 const AdminNavbar = ({ tabValue, handleTabChange }) => {
   const [loading, setLoading] = useState(false);
+  const [openCompanyForm, setOpenCompanyForm] = useState(false);
   const [openAccountForm, setOpenAccountForm] = useState(false);
   const [openCarForm, setOpenCarForm] = useState(false);
 
@@ -37,6 +45,12 @@ const AdminNavbar = ({ tabValue, handleTabChange }) => {
     }
   }, []);
 
+  const handleClickOpenCompanyForm = () => {
+    setOpenCompanyForm(true);
+  };
+  const handleCloseCompanyForm = () => {
+    setOpenCompanyForm(false);
+  };
   const handleClickOpenAccountForm = () => {
     setOpenAccountForm(true);
   };
@@ -97,16 +111,63 @@ const AdminNavbar = ({ tabValue, handleTabChange }) => {
           }}
         >
           <Box sx={{ flexGrow: 1 }}>
-            <Tabs value={tabValue} onChange={handleTabChange}>
-              <Tab label="Accounts" />
-              <Tab label="Waiting List" />
-              <Tab label="Cars" />
-              <Tab label="Recurring Rides" />
-              <Tab label="Calendar" />
+            <Tabs
+              value={tabValue}
+              onChange={handleTabChange}
+              variant="scrollable"
+              scrollButtons="auto"
+              aria-label="scrollable auto tabs example"
+            >
+              <Tab
+                label="Companies"
+                icon={<BusinessIcon fontSize="small" />}
+                aria-label="companies"
+                iconPosition="start"
+              />
+              <Tab
+                label="Accounts"
+                icon={<PeopleIcon fontSize="small" />}
+                aria-label="accounts"
+                iconPosition="start"
+              />
+              <Tab
+                label="Waiting List"
+                icon={<HourglassTopIcon fontSize="small" />}
+                aria-label="waiting list"
+                iconPosition="start"
+              />
+              <Tab
+                label="Cars"
+                icon={<TimeToLeaveIcon fontSize="small" />}
+                aria-label="cars"
+                iconPosition="start"
+              />
+              <Tab
+                label="Recurring Rides"
+                icon={<LoopIcon fontSize="small" />}
+                aria-label="recurring rides"
+                iconPosition="start"
+              />
+              <Tab
+                label="Calendar"
+                icon={<CalendarMonthIcon fontSize="small" />}
+                aria-label="calendar"
+                iconPosition="start"
+              />
             </Tabs>
           </Box>
-
           {tabValue === 0 && (
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              onClick={handleClickOpenCompanyForm}
+            >
+              Add Company
+            </Button>
+          )}
+
+          {tabValue === 1 && (
             <Button
               variant="contained"
               color="primary"
@@ -116,7 +177,7 @@ const AdminNavbar = ({ tabValue, handleTabChange }) => {
               Add Account
             </Button>
           )}
-          {tabValue === 2 && (
+          {tabValue === 3 && (
             <Button
               variant="contained"
               color="primary"
@@ -134,6 +195,10 @@ const AdminNavbar = ({ tabValue, handleTabChange }) => {
         handleClose={handleCloseAccountForm}
       />
       <CarForm open={openCarForm} handleClose={handleCloseCarForm} />
+      <CompanyForm
+        open={openCompanyForm}
+        handleClose={handleCloseCompanyForm}
+      />
     </Box>
   );
 };
