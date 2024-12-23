@@ -119,7 +119,7 @@ const GoogleMapSearch = (props) => {
             elevation={0}
             component="form"
             sx={{
-              borderRadius: "20px",
+              borderRadius: "10px",
               p: "4px 4px",
               display: "flex",
               alignItems: "center",
