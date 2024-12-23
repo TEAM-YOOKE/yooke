@@ -104,7 +104,24 @@ const PassengerHomeNav = () => {
           <Typography component="small" fontSize={"12px"}>
             Pick up location{" "}
           </Typography>
-          <GoogleMapSearch value={searchValue} setValue={setSearchValue} />
+          <Box
+            display="flex"
+            alignItems="center"
+            gap={2}
+            sx={{ fontSize: "12px" }}
+          >
+            <GoogleMapSearch value={searchValue} setValue={setSearchValue} />
+
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleUpdateLocation}
+              disabled={loading}
+              sx={{ borderRadius: "10px", height: "100%" }}
+            >
+              {loading ? "Updating..." : "Submit"}
+            </Button>
+          </Box>
         </Box>
 
         <Box display="flex" justifyContent="space-between">
