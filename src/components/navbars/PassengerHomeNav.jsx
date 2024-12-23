@@ -1,0 +1,148 @@
+import React from "react";
+import {
+  Box,
+  Button,
+  Snackbar,
+  Alert,
+  Slide,
+  AppBar,
+  Toolbar,
+} from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import { useState, useContext } from "react";
+
+import { LanguageContext } from "../../helpers/LanguageContext";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+import { auth, db } from "../../firebase-config";
+import {
+  collection,
+  doc,
+  getDocs,
+  query,
+  updateDoc,
+  where,
+} from "firebase/firestore";
+import GoogleMapSearch from "../inputs/GoogleMapSearch";
+import { useAuth } from "../../helpers/GeneralContext";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
+import useRides from "../../hooks/rides";
+
+const PassengerHomeNav = () => {
+  const navigate = useNavigate();
+  const { language } = useContext(LanguageContext);
+
+  const [pickupPoint, setPickupPoint] = useState("");
+  const [dropOffPoint, setDropOffPoint] = useState("");
+  const [departureTime, setDepartureTime] = useState(null);
+  const [selectedSeats, setSelectedSeats] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+
+  const { rides, ridesLoading, ridesError, refreshRides } = useRides();
+
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+
+  const { currentUser } = useAuth();
+  console.log(currentUser);
+
+  const handlePickUpChange = (e) => {
+    setPickupPoint(e.target.value);
+  };
+
+  const handleUpdateLocation = async () => {
+    try {
+      setLoading(true);
+      const personQ = query(
+        collection(db, "accounts"),
+        where("email", "==", auth.currentUser.email)
+      );
+      const personQuerySnapshot = await getDocs(personQ);
+
+      if (!personQuerySnapshot.empty) {
+        const personDoc = personQuerySnapshot.docs[0];
+        const personDocRef = doc(db, "accounts", personDoc.id);
+        await updateDoc(personDocRef, { pickUpLocation: pickupPoint });
+        console.log("location updated");
+        setSnackbar({
+          open: true,
+          message: "Location updated",
+          severity: "success",
+        });
+      } else {
+        console.log("person not found");
+      }
+    } catch (error) {
+      console.log("error updating location", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  return (
+    <AppBar
+      position="sticky"
+      sx={{ bgcolor: "#fff" }}
+      color="inherit"
+      elevation={1}
+    >
+      <Box
+        display="flex"
+        alignItems="left"
+        textAlign="left"
+        flexDirection="column"
+        padding="15px"
+        gap={3}
+        justifyContent="space-between"
+      >
+        <Box display="flex" flexDirection="column">
+          <Typography component="small" fontSize={"12px"}>
+            Pick up location{" "}
+          </Typography>
+          <GoogleMapSearch value={searchValue} setValue={setSearchValue} />
+        </Box>
+
+        <Box display="flex" justifyContent="space-between">
+          <Box display="flex" flexDirection="column" alignItems="center">
+            <Typography component="span" fontSize={"12px"} color={"#22CEA6"}>
+              <LocationOnIcon fontSize="small" />
+            </Typography>
+            <Typography component="span" fontWeight={"bold"} fontSize={"12px"}>
+              {currentUser.pickUpLocation ?? "Not set"}
+            </Typography>
+          </Box>
+          <Box display="flex" flexDirection="column" alignItems="center">
+            <Typography component="span" fontSize={"12px"} color={"#22CEA6"}>
+              <AccessTimeIcon fontSize="small" />
+            </Typography>
+            <Typography component="span" fontWeight={"bold"} fontSize={"12px"}>
+              {currentUser.leaveTime
+                ? new Date(currentUser.leaveTime).toLocaleTimeString("en-US", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : "Not set"}
+            </Typography>
+          </Box>
+          <Box display="flex" flexDirection="column" alignItems="center">
+            <Typography component="span" fontSize={"12px"} color={"#22CEA6"}>
+              <DirectionsCarIcon fontSize="small" />
+            </Typography>
+            <Typography component="span" fontSize={"12px"} fontWeight={"bold"}>
+              {currentUser.pairedCar
+                ? currentUser.pairedCar.plate
+                : "Not paired"}
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
+    </AppBar>
+  );
+};
+
+export default PassengerHomeNav;
