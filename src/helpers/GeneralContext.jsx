@@ -93,7 +93,7 @@ export const AuthProvider = ({ children }) => {
 
   const theme = useTheme();
 
-  useEffect(() => {
+  const fetchCurrentUser = useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setLoading(true);
@@ -112,7 +112,7 @@ export const AuthProvider = ({ children }) => {
 
             const rideQuery = query(
               collection(db, "rides"),
-              where("driverId", "==", user.uid)
+              where("driverId", "==", userDoc.id)
             );
             const rideQuerySnapshot = await getDocs(rideQuery);
 

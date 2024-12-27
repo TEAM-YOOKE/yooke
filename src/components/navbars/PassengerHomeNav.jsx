@@ -1,24 +1,16 @@
-import React from "react";
-import {
-  Box,
-  Button,
-  Snackbar,
-  Alert,
-  Slide,
-  AppBar,
-  Toolbar,
-} from "@mui/material";
+import React, { useEffect } from "react";
+import { Box, Button, AppBar, CircularProgress } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useState, useContext } from "react";
 
 import { LanguageContext } from "../../helpers/LanguageContext";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
-import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { auth, db } from "../../firebase-config";
 import {
   collection,
   doc,
+  getDoc,
   getDocs,
   query,
   updateDoc,
@@ -29,6 +21,7 @@ import { useAuth } from "../../helpers/GeneralContext";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import useRides from "../../hooks/rides";
+import useCurrentUserDoc from "../../hooks/currentUserDoc";
 
 const PassengerHomeNav = () => {
   const navigate = useNavigate();
@@ -40,17 +33,53 @@ const PassengerHomeNav = () => {
   const [selectedSeats, setSelectedSeats] = useState(1);
   const [loading, setLoading] = useState(false);
   const [searchValue, setSearchValue] = useState("");
-
-  const { rides, ridesLoading, ridesError, refreshRides } = useRides();
-
+  const [car, setCar] = useState(null);
+  const [carLoading, setCarLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
     severity: "success",
   });
 
-  const { currentUser } = useAuth();
-  console.log(currentUser);
+  const { currentUserDoc: currentUser, currentUserDocLoading } =
+    useCurrentUserDoc();
+
+  // Fetch ride details
+  useEffect(() => {
+    const fetchRideData = async () => {
+      if (currentUser && currentUser.assignedCar) {
+        setCarLoading(true);
+        try {
+          const rideDocRef = doc(db, "rides", currentUser.assignedCar);
+          const rideSnapshot = await getDoc(rideDocRef);
+          console.log("user ride -->", rideSnapshot.data());
+          const rideData = rideSnapshot.data();
+
+          if (rideData) {
+            const driverDocRef = doc(db, "accounts", rideData.driverId);
+            const driverSnapshot = await getDoc(driverDocRef);
+
+            if (driverSnapshot.exists()) {
+              const driverData = driverSnapshot.data();
+
+              setCar({ name: driverData.carName });
+            } else {
+              setCar(null);
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching ride data:", error);
+          setCar(null);
+        } finally {
+          setCarLoading(false);
+        }
+      } else {
+        setCar(null);
+      }
+    };
+
+    fetchRideData();
+  }, [currentUser]);
 
   const handlePickUpChange = (e) => {
     setPickupPoint(e.target.value);
@@ -130,7 +159,7 @@ const PassengerHomeNav = () => {
               <LocationOnIcon fontSize="small" />
             </Typography>
             <Typography component="span" fontWeight={"bold"} fontSize={"12px"}>
-              {currentUser.pickUpLocation ?? "Not set"}
+              {currentUser?.pickUpLocation ?? "Not set"}
             </Typography>
           </Box>
           <Box display="flex" flexDirection="column" alignItems="center">
@@ -138,7 +167,7 @@ const PassengerHomeNav = () => {
               <AccessTimeIcon fontSize="small" />
             </Typography>
             <Typography component="span" fontWeight={"bold"} fontSize={"12px"}>
-              {currentUser.leaveTime
+              {currentUser?.leaveTime
                 ? new Date(currentUser.leaveTime).toLocaleTimeString("en-US", {
                     hour: "2-digit",
                     minute: "2-digit",
@@ -151,9 +180,13 @@ const PassengerHomeNav = () => {
               <DirectionsCarIcon fontSize="small" />
             </Typography>
             <Typography component="span" fontSize={"12px"} fontWeight={"bold"}>
-              {currentUser.pairedCar
-                ? currentUser.pairedCar.plate
-                : "Not paired"}
+              {carLoading ? (
+                <CircularProgress size={15} />
+              ) : car ? (
+                car.name + " - " + (car.plate || "N/A")
+              ) : (
+                "Not paired"
+              )}
             </Typography>
           </Box>
         </Box>
