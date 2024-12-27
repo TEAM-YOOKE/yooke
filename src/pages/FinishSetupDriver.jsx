@@ -58,6 +58,8 @@ const FinishSetupDriver = () => {
     setCarImages(files);
   };
 
+  console.log(currentUser);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (carImages.length < 3) {
@@ -86,6 +88,7 @@ const FinishSetupDriver = () => {
       await updateDoc(userDocRef, {
         username,
         whatsappNumber,
+        carName,
         carImages: imageUrls,
         accountSetupDone: true,
         profileColor,
@@ -93,12 +96,11 @@ const FinishSetupDriver = () => {
 
       // Create a new document in the rides collection
       await addDoc(collection(db, "rides"), {
-        driverName: username,
-        driverId: currentUser.uid,
+        driverId: currentUser.docId,
         acceptingRideRequests: true,
         leaveTime: leaveTime.toISOString(),
-        carName,
         stopPoints, // Stop points from the StopPoints component
+        passengers: [],
       });
 
       await updateUser(currentUser.email);
