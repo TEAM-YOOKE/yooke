@@ -19,7 +19,7 @@ function HomePassenger() {
     severity: "success",
   });
   const { currentUser, updateUser } = useAuth();
-  const { refreshCurrentUserDoc } = useCurrentUserDoc();
+  const { refreshCurrentUserDoc, refreshRideData } = useCurrentUserDoc();
 
   const handleJoinRide = async (rideId) => {
     setRideLoading(true);
@@ -35,6 +35,7 @@ function HomePassenger() {
       });
       await refreshRides();
       await refreshCurrentUserDoc();
+      await refreshRideData();
       setSnackbar({
         open: true,
         message: "Joined the ride successfully",
@@ -65,6 +66,7 @@ function HomePassenger() {
       });
       await refreshRides();
       await refreshCurrentUserDoc();
+      await refreshRideData();
 
       setSnackbar({
         open: true,

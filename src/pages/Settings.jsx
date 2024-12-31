@@ -25,7 +25,10 @@ const Settings = () => {
   const { language } = useContext(LanguageContext);
   const navigate = useNavigate();
 
+  console.log(currentUser);
+
   const [name, setName] = useState(currentUser?.username || "");
+  const [numberPlate, setNumberPlate] = useState(currentUser?.carPlate || "");
   const [phoneNumber, setPhoneNumber] = useState(
     currentUser?.whatsappNumber || ""
   );
@@ -37,6 +40,7 @@ const Settings = () => {
   useEffect(() => {
     setName(currentUser?.username || "");
     setPhoneNumber(currentUser?.whatsappNumber || "");
+    setNumberPlate(currentUser?.carPlate || "");
     setCarImages(currentUser?.carImages || []);
   }, [currentUser]);
 
@@ -71,6 +75,7 @@ const Settings = () => {
 
       await updateDoc(userDocRef, {
         username: name,
+        carPlate: numberPlate,
         whatsappNumber: phoneNumber,
         carImages: imageUrls.length ? imageUrls : carImages,
       });
@@ -123,6 +128,20 @@ const Settings = () => {
 
         {currentUser.accountType === "Car owner" && (
           <Box>
+            <Box sx={{ my: 2 }}>
+              <TextField
+                label={language.numberPlate}
+                fullWidth
+                margin="normal"
+                variant="outlined"
+                color="secondary"
+                value={numberPlate}
+                onChange={(e) => {
+                  setNumberPlate(e.target.value);
+                  setChangesMade(true);
+                }}
+              />
+            </Box>
             <Box sx={{ my: 2 }}>
               <Button
                 variant="contained"

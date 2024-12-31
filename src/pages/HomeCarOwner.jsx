@@ -11,6 +11,7 @@ import { useAuth } from "../helpers/GeneralContext";
 import dayjs from "dayjs";
 import { TextField } from "@mui/material";
 import { LanguageContext } from "../helpers/LanguageContext";
+import GoogleMapSearchMultiple from "../components/inputs/GoogleMapSearchMultiple";
 
 function HomeCarOwner() {
   const { currentUser, rideData, updateUser } = useAuth();
@@ -104,7 +105,16 @@ function HomeCarOwner() {
         />
       </LocalizationProvider>
 
-      <StopPoints value={stopPoints} onChange={handleStopPointsChange} />
+      {/* put the google map compoent here for the stop points */}
+      <GoogleMapSearchMultiple
+        value={stopPoints}
+        setValue={(newPoints) => {
+          setStopPoints(newPoints);
+          setChangesMade(true);
+        }}
+      />
+
+      {/* <StopPoints value={stopPoints} onChange={handleStopPointsChange} /> */}
 
       <Alert severity="info" sx={{ mt: 2 }}>
         {language.homeCarOwner.stopPointsInfo}
