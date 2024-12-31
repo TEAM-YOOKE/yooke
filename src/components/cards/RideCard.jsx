@@ -69,7 +69,7 @@ const RideCard = ({ ride, onJoinRide, currentUser, onExitRide, loading }) => {
         {/* Ride Information */}
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
           <Typography fontSize="16px" fontWeight="bold">
-            {ride.driver?.carName} - {ride.plateNumber ?? "N/A"}
+            {ride.driver?.carName} - {ride.driver.carPlate ?? "N/A"}
           </Typography>
           <Typography fontSize="14px" color="text.secondary">
             Driver - {ride.driver?.username}

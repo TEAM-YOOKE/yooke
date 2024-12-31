@@ -41,45 +41,14 @@ const PassengerHomeNav = () => {
     severity: "success",
   });
 
-  const { currentUserDoc: currentUser, currentUserDocLoading } =
-    useCurrentUserDoc();
-
-  // Fetch ride details
-  useEffect(() => {
-    const fetchRideData = async () => {
-      if (currentUser && currentUser.assignedCar) {
-        setCarLoading(true);
-        try {
-          const rideDocRef = doc(db, "rides", currentUser.assignedCar);
-          const rideSnapshot = await getDoc(rideDocRef);
-          console.log("user ride -->", rideSnapshot.data());
-          const rideData = rideSnapshot.data();
-
-          if (rideData) {
-            const driverDocRef = doc(db, "accounts", rideData.driverId);
-            const driverSnapshot = await getDoc(driverDocRef);
-
-            if (driverSnapshot.exists()) {
-              const driverData = driverSnapshot.data();
-
-              setCar({ name: driverData.carName });
-            } else {
-              setCar(null);
-            }
-          }
-        } catch (error) {
-          console.error("Error fetching ride data:", error);
-          setCar(null);
-        } finally {
-          setCarLoading(false);
-        }
-      } else {
-        setCar(null);
-      }
-    };
-
-    fetchRideData();
-  }, [currentUser]);
+  const {
+    currentUserDoc: currentUser,
+    currentUserDocLoading,
+    refreshCurrentUserDoc,
+    rideData,
+    rideDataLoading,
+    refreshRideData,
+  } = useCurrentUserDoc();
 
   const handlePickUpChange = (e) => {
     setPickupPoint(e.target.value);
@@ -97,13 +66,17 @@ const PassengerHomeNav = () => {
       if (!personQuerySnapshot.empty) {
         const personDoc = personQuerySnapshot.docs[0];
         const personDocRef = doc(db, "accounts", personDoc.id);
-        await updateDoc(personDocRef, { pickUpLocation: pickupPoint });
+        await updateDoc(personDocRef, {
+          pickUpLocation: searchValue?.structured_formatting?.main_text,
+        });
         console.log("location updated");
         setSnackbar({
           open: true,
           message: "Location updated",
           severity: "success",
         });
+        refreshCurrentUserDoc();
+        setSearchValue("");
       } else {
         console.log("person not found");
       }
@@ -180,10 +153,10 @@ const PassengerHomeNav = () => {
               <DirectionsCarIcon fontSize="small" />
             </Typography>
             <Typography component="span" fontSize={"12px"} fontWeight={"bold"}>
-              {carLoading ? (
+              {rideDataLoading ? (
                 <CircularProgress size={15} />
-              ) : car ? (
-                car.name + " - " + (car.plate || "N/A")
+              ) : rideData ? (
+                rideData.car.name + " - " + (rideData.car.plate || "N/A")
               ) : (
                 "Not paired"
               )}

@@ -1,5 +1,6 @@
 import React from "react";
 import { Box, TextField, Chip, Autocomplete } from "@mui/material";
+import GoogleMapSearchMultiple from "./inputs/GoogleMapSearchMultiple";
 
 const stopPointsList = [
   "Carrefour Obili",
@@ -52,6 +53,11 @@ const stopPointsList = [
 const StopPoints = ({ value, onChange }) => {
   return (
     <Box sx={{ width: "100%" }}>
+      <GoogleMapSearchMultiple
+        options={stopPointsList}
+        value={value}
+        onChange={onChange}
+      />
       <Autocomplete
         multiple
         id="tags-filled"

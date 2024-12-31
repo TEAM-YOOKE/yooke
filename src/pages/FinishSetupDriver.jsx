@@ -18,6 +18,7 @@ import { db } from "../firebase-config";
 import dayjs from "dayjs";
 import StopPoints from "../components/StopPoints";
 import { useAuth } from "../helpers/GeneralContext";
+import GoogleMapSearchMultiple from "../components/inputs/GoogleMapSearchMultiple";
 
 const colors = [
   { r: 255, g: 59, b: 48 }, // Red
@@ -48,6 +49,7 @@ const FinishSetupDriver = () => {
   );
   const [leaveTime, setLeaveTime] = useState(dayjs());
   const [carName, setCarName] = useState("");
+  const [carPlate, setCarPlate] = useState("");
   const [carImages, setCarImages] = useState([]);
   const [stopPoints, setStopPoints] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -62,6 +64,7 @@ const FinishSetupDriver = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (carImages.length < 3) {
       setError("Please upload at least 3 images of your car.");
       return;
@@ -89,6 +92,7 @@ const FinishSetupDriver = () => {
         username,
         whatsappNumber,
         carName,
+        carPlate,
         carImages: imageUrls,
         accountSetupDone: true,
         profileColor,
@@ -168,10 +172,26 @@ const FinishSetupDriver = () => {
         onChange={(e) => setCarName(e.target.value)}
         sx={{ margin: "16px 0 32px 0" }}
       />
+      <TextField
+        label="Car number plate"
+        variant="outlined"
+        fullWidth
+        required
+        value={carPlate}
+        onChange={(e) => setCarPlate(e.target.value)}
+        sx={{ margin: "16px 0 32px 0" }}
+      />
 
-      <StopPoints
+      {/* <StopPoints
         value={stopPoints}
         onChange={(newValue) => setStopPoints(newValue)}
+      /> */}
+      <GoogleMapSearchMultiple
+        value={stopPoints}
+        setValue={(newPoints) => {
+          setStopPoints(newPoints);
+          // setChangesMade(true);
+        }}
       />
 
       <Alert severity="info" sx={{ mt: 2 }}>
