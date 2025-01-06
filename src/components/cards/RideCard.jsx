@@ -32,12 +32,12 @@ const CustomStepIcon = () => (
 );
 
 const RideCard = ({ ride, onJoinRide, currentUser, onExitRide, loading }) => {
-  const isPassenger = ride.passengers.includes(currentUser.docId);
-  const handleButtonClick = () => {
+  const isPassenger = ride.passengers.includes(currentUser.id);
+  const handleButtonClick = (ride) => {
     if (isPassenger) {
-      onExitRide(ride.id);
+      onExitRide(ride);
     } else {
-      onJoinRide(ride.id);
+      onJoinRide(ride);
     }
   };
 
@@ -74,7 +74,11 @@ const RideCard = ({ ride, onJoinRide, currentUser, onExitRide, loading }) => {
           <Typography fontSize="14px" color="text.secondary">
             Driver - {ride.driver?.username}
           </Typography>
-          <Typography fontSize="14px" color="text.secondary">
+          <Typography
+            fontSize="14px"
+            fontWeight={"bold"}
+            // color="text.secondary"
+          >
             Leave time -{" "}
             {new Date(ride.leaveTime).toLocaleTimeString("en-US", {
               hour: "2-digit",
@@ -96,7 +100,7 @@ const RideCard = ({ ride, onJoinRide, currentUser, onExitRide, loading }) => {
               bgcolor: isPassenger ? "darkred" : "#2aa1a1",
             },
           }}
-          onClick={handleButtonClick}
+          onClick={() => handleButtonClick(ride)}
           disabled={loading}
         >
           {loading ? "Loading..." : isPassenger ? "Exit Ride" : "Join Ride"}

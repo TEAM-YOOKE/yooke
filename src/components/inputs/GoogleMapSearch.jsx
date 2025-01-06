@@ -68,6 +68,7 @@ const GoogleMapSearch = (props) => {
       {
         input: inputValue,
         componentRestrictions: { country: "gh" },
+        // types: ["transit_station"],
       },
       (results) => {
         if (active) {
