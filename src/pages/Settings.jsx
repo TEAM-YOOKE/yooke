@@ -29,6 +29,7 @@ const Settings = () => {
 
   const [name, setName] = useState(currentUser?.username || "");
   const [numberPlate, setNumberPlate] = useState(currentUser?.carPlate || "");
+  const [slots, setSlots] = useState(currentUser?.slots || 4);
   const [phoneNumber, setPhoneNumber] = useState(
     currentUser?.whatsappNumber || ""
   );
@@ -41,6 +42,7 @@ const Settings = () => {
     setName(currentUser?.username || "");
     setPhoneNumber(currentUser?.whatsappNumber || "");
     setNumberPlate(currentUser?.carPlate || "");
+    setSlots(currentUser?.slots || 4);
     setCarImages(currentUser?.carImages || []);
   }, [currentUser]);
 
@@ -76,6 +78,7 @@ const Settings = () => {
       await updateDoc(userDocRef, {
         username: name,
         carPlate: numberPlate,
+        slots: slots,
         whatsappNumber: phoneNumber,
         carImages: imageUrls.length ? imageUrls : carImages,
       });
@@ -138,6 +141,18 @@ const Settings = () => {
                 value={numberPlate}
                 onChange={(e) => {
                   setNumberPlate(e.target.value);
+                  setChangesMade(true);
+                }}
+              />
+              <TextField
+                label={language.slots}
+                fullWidth
+                margin="normal"
+                variant="outlined"
+                color="secondary"
+                value={slots}
+                onChange={(e) => {
+                  setSlots(e.target.value);
                   setChangesMade(true);
                 }}
               />

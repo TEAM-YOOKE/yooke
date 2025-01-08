@@ -12,6 +12,7 @@ import {
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import PersonPinIcon from "@mui/icons-material/PersonPin";
+import GroupsIcon from "@mui/icons-material/Groups";
 
 import { styled } from "@mui/system";
 import Grid from "@mui/material/Grid2";
@@ -67,7 +68,7 @@ const RideCard = ({
         bgcolor: "white",
         boxShadow: 1,
         padding: 2,
-        my: 2,
+        my: 3,
       }}
     >
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -83,10 +84,9 @@ const RideCard = ({
             </Step>
           ))}
         </Stepper>
-
         {/* Ride Information */}
         <Grid container spacing={2} mt={2} px={1}>
-          <Grid size={4.5}>
+          <Grid size={4}>
             <Box
               display="flex"
               flexDirection="column"
@@ -122,7 +122,7 @@ const RideCard = ({
               </Typography>
             </Box>
           </Grid>
-          <Grid size={4.5}>
+          <Grid size={4}>
             <Box
               display="flex"
               flexDirection="column"
@@ -133,8 +133,24 @@ const RideCard = ({
               <Typography fontSize="12px">{ride.driver?.username}</Typography>
             </Box>
           </Grid>
+          <Grid size={1}>
+            <Box
+              display="flex"
+              flexDirection="column"
+              justifyItems="center"
+              alignItems="center"
+            >
+              <GroupsIcon fontSize="small" color="disabled" />
+              {ride.driver.slots ? (
+                <Typography fontSize="12px">
+                  {ride.passengers.length}/{ride.driver.slots}
+                </Typography>
+              ) : (
+                <Typography fontSize="12px">N/A</Typography>
+              )}
+            </Box>
+          </Grid>
         </Grid>
-
         {/* Join/Exit Ride Button */}
         <Button
           variant="contained"
