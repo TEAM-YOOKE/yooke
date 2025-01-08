@@ -1,17 +1,17 @@
 import React, { useState } from "react";
 import PassengerHomeNav from "../components/navbars/PassengerHomeNav";
-import useRides from "../hooks/rides";
 import RideCard from "../components/cards/RideCard";
 import { Box, Snackbar, Alert, Typography } from "@mui/material";
 import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { useAuth } from "../helpers/GeneralContext";
 import { db } from "../firebase-config";
 import dayjs from "dayjs";
-import { set } from "date-fns";
 import useCurrentUserDoc from "../hooks/currentUserDoc";
+import useUserLocationRides from "../hooks/userLocationRides";
 
 function HomePassenger() {
-  const { rides, ridesLoading, ridesError, refreshRides } = useRides();
+  const { rides, ridesLoading, ridesError, refreshRides } =
+    useUserLocationRides();
   const [loadingRideId, setLoadingRideId] = useState(null);
   console.log("rides-->", rides);
   const [snackbar, setSnackbar] = useState({
@@ -153,23 +153,19 @@ function HomePassenger() {
           <p>Loading rides...</p>
         ) : ridesError ? (
           <p>Error: {ridesError.message}</p>
-        ) : rides && rides.length > 0 && Array.isArray(rides) ? (
-          rides
-            .filter((ride) =>
-              ride.stopPoints?.includes(currentUser?.pickUpLocation)
-            )
-            .map((ride, index) => (
-              <RideCard
-                onJoinRide={handleJoinRide}
-                onExitRide={handleExitRide}
-                currentUser={currentUser}
-                key={index}
-                ride={ride}
-                disableAllButtons={
-                  loadingRideId !== null && loadingRideId !== ride.id
-                }
-              />
-            ))
+        ) : rides && rides.length > 0 ? (
+          rides.map((ride, index) => (
+            <RideCard
+              onJoinRide={handleJoinRide}
+              onExitRide={handleExitRide}
+              currentUser={currentUser}
+              key={index}
+              ride={ride}
+              disableAllButtons={
+                loadingRideId !== null && loadingRideId !== ride.id
+              }
+            />
+          ))
         ) : (
           <p>No rides available.</p>
         )}
