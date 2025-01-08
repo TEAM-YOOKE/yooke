@@ -11,6 +11,7 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import { useNavigate } from "react-router-dom";
 import { useState, useContext } from "react";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -214,64 +215,97 @@ const PassengerHomeNav = () => {
             </Box>
           </Box>
 
-          <Box display="flex" justifyContent="space-between">
-            <Box display="flex" flexDirection="column" alignItems="center">
-              <Typography component="span" fontSize={"12px"} color={"#22CEA6"}>
-                <LocationOnIcon fontSize="small" />
-              </Typography>
-              <Typography
-                component="span"
-                fontWeight={"bold"}
-                fontSize={"12px"}
+          <Grid container spacing={2}>
+            {/* <Box display="flex" justifyContent="space-between"> */}
+            <Grid size={4.5}>
+              <Box display="flex" flexDirection="column" alignItems="center">
+                <Typography
+                  component="span"
+                  fontSize={"12px"}
+                  color={"#22CEA6"}
+                >
+                  <LocationOnIcon fontSize="small" />
+                </Typography>
+                <Typography
+                  component="span"
+                  fontWeight={"bold"}
+                  fontSize={"12px"}
+                >
+                  {currentUser?.pickUpLocation ?? "Not set"}
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid size={3}>
+              <Box
+                onClick={() => setOpenLeaveTimeModal(true)}
+                display="flex"
+                flexDirection="column"
+                alignItems="center"
               >
-                {currentUser?.pickUpLocation ?? "Not set"}
-              </Typography>
-            </Box>
-            <Box
-              onClick={() => setOpenLeaveTimeModal(true)}
-              display="flex"
-              flexDirection="column"
-              alignItems="center"
-            >
-              <Typography component="span" fontSize={"12px"} color={"#22CEA6"}>
-                <AccessTimeIcon fontSize="small" />
-              </Typography>
-              <Typography
-                component="span"
-                fontWeight={"bold"}
-                fontSize={"12px"}
-              >
-                {currentUser?.leaveTime
-                  ? new Date(currentUser.leaveTime).toLocaleTimeString(
-                      "en-US",
-                      {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      }
-                    )
-                  : "Not set"}
-              </Typography>
-            </Box>
-
-            <Box display="flex" flexDirection="column" alignItems="center">
-              <Typography component="span" fontSize={"12px"} color={"#22CEA6"}>
-                <DirectionsCarIcon fontSize="small" />
-              </Typography>
-              <Typography
-                component="span"
-                fontSize={"12px"}
-                fontWeight={"bold"}
-              >
+                <Typography
+                  component="span"
+                  fontSize={"12px"}
+                  color={"#22CEA6"}
+                >
+                  <AccessTimeIcon fontSize="small" />
+                </Typography>
+                <Typography
+                  component="span"
+                  fontWeight={"bold"}
+                  fontSize={"12px"}
+                >
+                  {currentUser?.leaveTime
+                    ? new Date(currentUser.leaveTime).toLocaleTimeString(
+                        "en-US",
+                        {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }
+                      )
+                    : "Not set"}
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid size={4.5}>
+              <Box display="flex" flexDirection="column" alignItems="center">
+                <Typography
+                  component="span"
+                  fontSize={"12px"}
+                  color={"#22CEA6"}
+                >
+                  <DirectionsCarIcon fontSize="small" />
+                </Typography>
                 {rideDataLoading ? (
                   <CircularProgress size={15} />
                 ) : rideData ? (
-                  rideData.car.name + " - " + (rideData.car.plate || "N/A")
+                  <Box
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="center"
+                    justifyContent="center"
+                  >
+                    <Typography
+                      component="span"
+                      fontSize={"12px"}
+                      fontWeight={"bold"}
+                    >
+                      {rideData.car.name}
+                    </Typography>
+                    <Typography
+                      component="span"
+                      fontSize={"12px"}
+                      fontWeight={"bold"}
+                    >
+                      {rideData.car.plate || "N/A"}
+                    </Typography>
+                  </Box>
                 ) : (
                   "Not paired"
                 )}
-              </Typography>
-            </Box>
-          </Box>
+              </Box>
+            </Grid>
+            {/* </Box> */}
+          </Grid>
         </Box>
       </AppBar>
       <Dialog

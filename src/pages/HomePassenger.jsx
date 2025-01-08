@@ -12,7 +12,7 @@ import useCurrentUserDoc from "../hooks/currentUserDoc";
 
 function HomePassenger() {
   const { rides, ridesLoading, ridesError, refreshRides } = useRides();
-  const [rideLoading, setRideLoading] = useState(false);
+  const [loadingRideId, setLoadingRideId] = useState(null);
   console.log("rides-->", rides);
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -28,6 +28,26 @@ function HomePassenger() {
   } = useCurrentUserDoc();
 
   const handleJoinRide = async (ride) => {
+    if (currentUser.assignedCar) {
+      if (
+        window.confirm(
+          "Do you want to exit your current ride and join this ride?"
+        )
+      ) {
+        const rideRef = doc(db, "rides", currentUser.assignedCar);
+        await updateDoc(rideRef, {
+          passengers: arrayRemove(currentUser.id),
+        });
+        const userDoc = doc(db, "accounts", currentUser.id);
+        await updateDoc(userDoc, {
+          updatedAt: new Date(),
+          assignedCar: null,
+        });
+        await refreshRides();
+        await refreshRideData();
+        await refreshCurrentUserDoc();
+      }
+    }
     const passengerLeaveTime = dayjs(currentUser?.leaveTime);
     const rideLeaveTime = dayjs(ride.leaveTime);
 
@@ -49,7 +69,7 @@ function HomePassenger() {
       });
       return;
     }
-    setRideLoading(true);
+    setLoadingRideId(ride.id);
     try {
       const rideRef = doc(db, "rides", ride.id);
       await updateDoc(rideRef, {
@@ -76,11 +96,11 @@ function HomePassenger() {
         severity: "error",
       });
     } finally {
-      setRideLoading(false);
+      setLoadingRideId(null);
     }
   };
   const handleExitRide = async (ride) => {
-    setRideLoading(true);
+    setLoadingRideId(ride.id);
     try {
       const rideRef = doc(db, "rides", ride.id);
       await updateDoc(rideRef, {
@@ -108,7 +128,7 @@ function HomePassenger() {
         severity: "error",
       });
     } finally {
-      setRideLoading(false);
+      setLoadingRideId(null);
     }
   };
 
@@ -135,7 +155,9 @@ function HomePassenger() {
                 currentUser={currentUser}
                 key={index}
                 ride={ride}
-                loading={rideLoading}
+                disableAllButtons={
+                  loadingRideId !== null && loadingRideId !== ride.id
+                }
               />
             ))
         ) : (
