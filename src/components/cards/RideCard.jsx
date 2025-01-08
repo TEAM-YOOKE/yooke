@@ -28,8 +28,8 @@ const CustomStepConnector = styled(StepConnector)(() => ({
 const CustomStepIcon = () => (
   <Box
     sx={{
-      width: 8,
-      height: 8,
+      width: 7,
+      height: 7,
       borderRadius: "50%",
       bgcolor: "#33bdbd",
     }}
@@ -80,7 +80,11 @@ const RideCard = ({
         >
           {ride.stopPoints.map((label, index) => (
             <Step key={index}>
-              <StepLabel StepIconComponent={CustomStepIcon}>{label}</StepLabel>
+              <StepLabel StepIconComponent={CustomStepIcon}>
+                <Typography textAlign="center" fontSize="13px">
+                  {label}
+                </Typography>
+              </StepLabel>
             </Step>
           ))}
         </Stepper>
@@ -170,9 +174,19 @@ const RideCard = ({
             },
           }}
           onClick={() => handleButtonClick(ride)}
-          disabled={loading || disableAllButtons}
+          disabled={
+            loading ||
+            disableAllButtons ||
+            (ride.passengers.length >= ride.driver.slots && !isPassenger)
+          }
         >
-          {loading ? "Loading..." : isPassenger ? "Exit Ride" : "Join Ride"}
+          {loading
+            ? "Loading..."
+            : isPassenger
+            ? "Exit Ride"
+            : ride.passengers.length >= ride.driver.slots
+            ? "Ride full"
+            : "Join Ride"}
         </Button>
       </Box>
     </Card>

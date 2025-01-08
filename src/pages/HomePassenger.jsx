@@ -28,6 +28,15 @@ function HomePassenger() {
   } = useCurrentUserDoc();
 
   const handleJoinRide = async (ride) => {
+    // check if ride is full and return
+    if (ride.passengers.length >= ride.driver.slots) {
+      setSnackbar({
+        open: true,
+        message: "This ride is full.",
+        severity: "error",
+      });
+      return;
+    }
     if (currentUser.assignedCar) {
       if (
         window.confirm(
@@ -100,6 +109,7 @@ function HomePassenger() {
     }
   };
   const handleExitRide = async (ride) => {
+    if (!window.confirm("Are you sure you want to exit this ride?")) return;
     setLoadingRideId(ride.id);
     try {
       const rideRef = doc(db, "rides", ride.id);
