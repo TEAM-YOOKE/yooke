@@ -49,6 +49,7 @@ const FinishSetupDriver = () => {
   );
   const [leaveTime, setLeaveTime] = useState(dayjs());
   const [carName, setCarName] = useState("");
+  const [slots, setSlots] = useState(4);
   const [carPlate, setCarPlate] = useState("");
   const [carImages, setCarImages] = useState([]);
   const [stopPoints, setStopPoints] = useState([]);
@@ -93,6 +94,7 @@ const FinishSetupDriver = () => {
         whatsappNumber,
         carName,
         carPlate,
+        slots,
         carImages: imageUrls,
         accountSetupDone: true,
         profileColor,
@@ -179,6 +181,15 @@ const FinishSetupDriver = () => {
         required
         value={carPlate}
         onChange={(e) => setCarPlate(e.target.value)}
+        sx={{ margin: "16px 0 32px 0" }}
+      />
+      <TextField
+        label="How many passenger slots do you have?"
+        variant="outlined"
+        fullWidth
+        required
+        value={slots}
+        onChange={(e) => setSlots(e.target.value)}
         sx={{ margin: "16px 0 32px 0" }}
       />
 
