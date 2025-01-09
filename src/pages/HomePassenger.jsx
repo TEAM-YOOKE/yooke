@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import PassengerHomeNav from "../components/navbars/PassengerHomeNav";
 import RideCard from "../components/cards/RideCard";
-import { Box, Snackbar, Alert, Typography } from "@mui/material";
+import { Box, Snackbar, Alert, Typography, Skeleton } from "@mui/material";
 import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { useAuth } from "../helpers/GeneralContext";
 import { db } from "../firebase-config";
@@ -9,9 +9,12 @@ import dayjs from "dayjs";
 import useCurrentUserDoc from "../hooks/currentUserDoc";
 import useUserLocationRides from "../hooks/userLocationRides";
 
+const loadingSkeletons = [1, 2, 3];
+
 function HomePassenger() {
   const { rides, ridesLoading, ridesError, refreshRides } =
     useUserLocationRides();
+
   const [loadingRideId, setLoadingRideId] = useState(null);
   console.log("rides-->", rides);
   const [snackbar, setSnackbar] = useState({
@@ -19,7 +22,6 @@ function HomePassenger() {
     message: "",
     severity: "success",
   });
-  const { currentUser: user, updateUser } = useAuth();
   const {
     refreshCurrentUserDoc,
     refreshRideData,
@@ -146,29 +148,80 @@ function HomePassenger() {
     <Box height="100vh">
       <PassengerHomeNav />
       <Box px={2} py={3}>
-        <Typography component="h4" fontWeight="bold">
-          Available Rides
-        </Typography>
-        {ridesLoading ? (
-          <p>Loading rides...</p>
-        ) : ridesError ? (
-          <p>Error: {ridesError.message}</p>
-        ) : rides && rides.length > 0 ? (
-          rides.map((ride, index) => (
-            <RideCard
-              onJoinRide={handleJoinRide}
-              onExitRide={handleExitRide}
-              currentUser={currentUser}
-              key={index}
-              ride={ride}
-              disableAllButtons={
-                loadingRideId !== null && loadingRideId !== ride.id
-              }
+        {/* Check if the pick-up location is not set */}
+        {!currentUser?.pickUpLocation ? (
+          <Box sx={{ textAlign: "center", marginTop: 4 }}>
+            <img
+              src="/location_not_set.svg"
+              width="150px"
+              style={{ marginTop: "40px" }}
+              alt="Pick-up Location Not Set"
             />
-          ))
+            <Typography sx={{ opacity: 0.6, marginTop: 1 }}>
+              Please set your pick-up location to find available rides
+            </Typography>
+          </Box>
+        ) : ridesLoading ? (
+          // Show loading skeletons while rides are loading
+          <Box
+            display="flex"
+            flexDirection="column"
+            gap={2}
+            mt={2}
+            justifyContent="center"
+            alignItems="center"
+          >
+            {loadingSkeletons.map((_, index) => (
+              <Skeleton
+                key={index}
+                sx={{ width: "100%", borderRadius: 2 }}
+                variant="rectangular"
+                height={180}
+              />
+            ))}
+          </Box>
+        ) : ridesError ? (
+          // Handle error state
+          <Typography
+            sx={{ color: "error.main", textAlign: "center", marginTop: 4 }}
+          >
+            Error: {ridesError.message}
+          </Typography>
+        ) : rides && rides.length > 0 ? (
+          // Show available rides
+          <>
+            <Typography component="h4" fontWeight="bold" mb={2}>
+              Available Rides
+            </Typography>
+            {rides.map((ride, index) => (
+              <RideCard
+                key={index}
+                onJoinRide={handleJoinRide}
+                onExitRide={handleExitRide}
+                currentUser={currentUser}
+                ride={ride}
+                disableAllButtons={
+                  loadingRideId !== null && loadingRideId !== ride.id
+                }
+              />
+            ))}
+          </>
         ) : (
-          <p>No rides available.</p>
+          // Handle no rides available
+          <Box sx={{ textAlign: "center", marginTop: 4 }}>
+            <img
+              src="/empty.png"
+              width="150px"
+              style={{ marginTop: "40px" }}
+              alt="No Rides Available"
+            />
+            <Typography sx={{ opacity: 0.6, marginTop: 1 }}>
+              No Rides Available
+            </Typography>
+          </Box>
         )}
+
+        {/* Snackbar for user feedback */}
         <Snackbar
           anchorOrigin={{ vertical: "top", horizontal: "center" }}
           open={snackbar.open}
