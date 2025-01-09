@@ -69,7 +69,7 @@ const PassengerHomeNav = () => {
       setLoading(true);
       const personQ = query(
         collection(db, "accounts"),
-        where("email", "==", auth.currentUser.email)
+        where("email", "==", currentUser.email)
       );
       const personQuerySnapshot = await getDocs(personQ);
 
@@ -77,6 +77,7 @@ const PassengerHomeNav = () => {
         const personDoc = personQuerySnapshot.docs[0];
         const personDocRef = doc(db, "accounts", personDoc.id);
         const personData = personDoc.data();
+        console.log(personData);
         if (personData.assignedCar) {
           const rideRef = doc(db, "rides", personData.assignedCar);
           await updateDoc(rideRef, {
@@ -222,7 +223,7 @@ const PassengerHomeNav = () => {
                 <Typography
                   component="span"
                   fontSize={"12px"}
-                  color={"#22CEA6"}
+                  color={!currentUser?.pickUpLocation ? "red" : "#22CEA6"}
                 >
                   <LocationOnIcon fontSize="small" />
                 </Typography>
@@ -230,6 +231,7 @@ const PassengerHomeNav = () => {
                   component="span"
                   fontWeight={"bold"}
                   fontSize={"12px"}
+                  color={!currentUser?.pickUpLocation && "red"}
                 >
                   {currentUser?.pickUpLocation ?? "Not set"}
                 </Typography>
@@ -300,7 +302,13 @@ const PassengerHomeNav = () => {
                     </Typography>
                   </Box>
                 ) : (
-                  "Not paired"
+                  <Typography
+                    component="span"
+                    fontWeight={"bold"}
+                    fontSize={"12px"}
+                  >
+                    Not paired
+                  </Typography>
                 )}
               </Box>
             </Grid>

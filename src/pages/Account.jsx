@@ -18,12 +18,14 @@ import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import { useAuth } from "../helpers/GeneralContext";
 import { useNavigate } from "react-router-dom";
 import { LanguageContext } from "../helpers/LanguageContext";
+import useUserLocationRides from "../hooks/userLocationRides";
 
 export default function Account() {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const { language } = useContext(LanguageContext);
+  const { refreshRides } = useUserLocationRides();
 
   const handleLogout = async () => {
     setLoading(true);
