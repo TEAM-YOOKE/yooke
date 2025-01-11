@@ -158,7 +158,7 @@ function HomePassenger() {
               alt="Pick-up Location Not Set"
             />
             <Typography sx={{ opacity: 0.6, marginTop: 1 }}>
-              Please set your pick-up location to find available rides
+              Please set your pick-up location above to find available rides
             </Typography>
           </Box>
         ) : ridesLoading ? (

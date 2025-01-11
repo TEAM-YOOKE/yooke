@@ -120,7 +120,7 @@ const GoogleMapSearch = (props) => {
             elevation={0}
             component="form"
             sx={{
-              borderRadius: "10px",
+              borderRadius: "20px",
               p: "4px 4px",
               display: "flex",
               alignItems: "center",
@@ -131,7 +131,7 @@ const GoogleMapSearch = (props) => {
               size="large"
               {...params.inputProps}
               sx={{ ml: 1, flex: 1 }}
-              placeholder="Search Google Maps"
+              placeholder="Enter your pick up location"
               inputProps={{ "aria-label": "search google maps" }}
             />
             {inputValue && inputValue.length ? (

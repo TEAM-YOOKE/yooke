@@ -10,6 +10,7 @@ import {
   DialogTitle,
   Snackbar,
   Alert,
+  IconButton,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { useNavigate } from "react-router-dom";
@@ -18,7 +19,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import dayjs from "dayjs";
-
+import SendIcon from "@mui/icons-material/Send";
 import { LanguageContext } from "../../helpers/LanguageContext";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import Typography from "@mui/material/Typography";
@@ -193,9 +194,9 @@ const PassengerHomeNav = () => {
           justifyContent="space-between"
         >
           <Box display="flex" flexDirection="column">
-            <Typography component="small" fontSize={"12px"}>
+            {/* <Typography component="small" fontSize={"12px"}>
               Pick up location{" "}
-            </Typography>
+            </Typography> */}
             <Box
               display="flex"
               alignItems="center"
@@ -203,13 +204,18 @@ const PassengerHomeNav = () => {
               sx={{ fontSize: "12px" }}
             >
               <GoogleMapSearch value={searchValue} setValue={setSearchValue} />
-
-              <Button
-                variant="contained"
-                color="primary"
+              {/* <IconButton
+                color="secondary"
                 onClick={handleUpdateLocation}
                 disabled={loading}
-                sx={{ borderRadius: "10px", height: "100%" }}
+              >
+                <SendIcon fontSize="large" />
+              </IconButton> */}
+              <Button
+                variant="contained"
+                onClick={handleUpdateLocation}
+                disabled={loading || !searchValue}
+                sx={{ borderRadius: "20px", height: "100%" }}
               >
                 {loading ? "Updating..." : "Submit"}
               </Button>
@@ -233,7 +239,7 @@ const PassengerHomeNav = () => {
                   fontSize={"12px"}
                   color={!currentUser?.pickUpLocation && "red"}
                 >
-                  {currentUser?.pickUpLocation ?? "Not set"}
+                  {currentUser?.pickUpLocation ?? "Location Not set"}
                 </Typography>
               </Box>
             </Grid>
