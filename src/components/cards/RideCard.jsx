@@ -63,7 +63,10 @@ const RideCard = ({
   return (
     <Card
       sx={{
-        border: "1px solid #33bdbd",
+        border:
+          currentUser?.assignedCar === ride.id
+            ? "2px solid rgb(68, 218, 245)"
+            : "0.5px solid #33bdbd",
         borderRadius: 2,
         bgcolor: "white",
         boxShadow: 1,
