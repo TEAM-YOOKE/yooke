@@ -29,6 +29,7 @@ import FAQs from "./pages/FAQs";
 import Settings from "./pages/Settings";
 import { AvailableRoutesProvider } from "./helpers/AvailableRoutesContext";
 import AdminRoute from "./components/AdminRoute";
+import useScript from "./hooks/mapScript";
 
 function loadScript(src, position, id) {
   if (!position) {
@@ -48,19 +49,13 @@ const ProtectedRoute = ({ children }) => {
   const location = useLocation();
   const loaded = React.useRef(false);
 
-  if (typeof window !== "undefined" && !loaded.current) {
-    if (!document.querySelector("#google-maps")) {
-      loadScript(
-        `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY2}&libraries=places,marker`,
-        document.querySelector("head"),
-        "google-maps"
-      );
-    }
-    loaded.current = true;
-  }
+  const scriptLoaded = useScript(
+    `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY2}&libraries=places,marker`,
+    "google-maps"
+  );
 
   // Show loading spinner while checking authentication status
-  if (loading) {
+  if (loading || !scriptLoaded) {
     return <div>Loading...</div>; // Replace with your spinner component
   }
 
