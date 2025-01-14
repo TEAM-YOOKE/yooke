@@ -1,33 +1,136 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import PassengerHomeNav from "../components/navbars/PassengerHomeNav";
 import RideCard from "../components/cards/RideCard";
-import { Box, Snackbar, Alert, Typography, Skeleton } from "@mui/material";
+import {
+  Box,
+  Snackbar,
+  Alert,
+  Typography,
+  Skeleton,
+  Button,
+} from "@mui/material";
 import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { useAuth } from "../helpers/GeneralContext";
 import { db } from "../firebase-config";
 import dayjs from "dayjs";
 import useCurrentUserDoc from "../hooks/currentUserDoc";
 import useUserLocationRides from "../hooks/userLocationRides";
-
-const loadingSkeletons = [1, 2, 3];
+import SetAddress from "../modals/SetAddress";
 
 function HomePassenger() {
-  const { rides, ridesLoading, ridesError, refreshRides } =
-    useUserLocationRides();
-
-  const [loadingRideId, setLoadingRideId] = useState(null);
-  console.log("rides-->", rides);
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success",
-  });
   const {
     refreshCurrentUserDoc,
     refreshRideData,
     rideData,
     currentUserDoc: currentUser,
   } = useCurrentUserDoc();
+  const { rides, ridesLoading, ridesError, refreshRides } =
+    useUserLocationRides();
+
+  const [loadingRideId, setLoadingRideId] = useState(null);
+  const [openSetAddress, setOpenSetAddress] = useState(false);
+
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+
+  // console logs
+  console.log("rides", rides);
+  console.log("rideData", rideData);
+  console.log("currentUser", currentUser);
+
+  // useEffect(() => {
+  //   let lat = "";
+  //   let lng = "";
+  //   var geocoder = new window.google.maps.Geocoder();
+
+  //   if (currentUser?.pickUpLocation) {
+  //     geocoder.geocode(
+  //       {
+  //         address: currentUser?.pickUpLocation,
+  //       },
+  //       function (results, status) {
+  //         if (status === "OK") {
+  //           lat = results[0].geometry.location.lat();
+  //           lng = results[0].geometry.location.lng();
+  //           console.log("longitude->", lng);
+  //           console.log("latitude", lat);
+
+  //           // loadMapDetails(lat, lng);
+  //         } else {
+  //           console.log(
+  //             "Geocode was not successful for the following reason: " + status
+  //           );
+  //         }
+  //       }
+  //     );
+  //   }
+  // }, [currentUser, rides]);
+
+  useEffect(() => {
+    const directionsService = new window.google.maps.DirectionsService();
+    if (rides.length > 0) {
+      directionsService.route(
+        {
+          // origin: currentUser?.pickUpLocation,
+          // destination: rides[1]?.stopPoints[0],
+          origin: "Afrikiko",
+          destination: "Legon Campus",
+          travelMode: window.google.maps.TravelMode.DRIVING,
+          // travelMode: window.google.maps.TravelMode.TRANSIT,
+          transitOptions: {
+            modes: [window.google.maps.TransitMode.BUS],
+          },
+          drivingOptions: {
+            departureTime: new Date(Date.now() + 1000), // 1 second from now
+            trafficModel: "bestguess",
+          },
+        },
+        (result, status) => {
+          if (status === window.google.maps.DirectionsStatus.OK) {
+            const legs = result.routes[0].legs[0]; // first leg of route
+
+            // const transitDetails = [];
+            // legs.steps.forEach((step) => {
+            //   console.log("step2:", step);
+            //   if (step.transit) {
+            //     const { line, stops } = step.transit;
+            //     const stopDetails = {
+            //       departureStop: step.transit.departure_stop.name,
+            //       arrivalStop: step.transit.arrival_stop.name,
+            //       numberOfStops: step.transit.num_stops,
+            //       busLine: line.short_name || line.name,
+            //       agency: line.agencies[0]?.name,
+            //     };
+            //     transitDetails.push(stopDetails);
+            //   }
+            // });
+
+            //Distance and duration
+            const distance = legs.distance.text;
+            const duration = Math.round(legs.duration_in_traffic.value / 60);
+            console.log(`Duration: ${duration}, Distance: ${distance}`);
+
+            // Transit stations (steps)
+            const steps = legs.steps;
+            const transitStations = steps.map((step, index) => {
+              const { instructions, distance, duration } = step;
+              return {
+                station: instructions,
+                distance: distance.text,
+                duration: duration.text,
+              };
+            });
+            console.log("Transit stations:", transitStations);
+          } else {
+            console.error("Failed to get directions:", status);
+          }
+        }
+      );
+    }
+  }, [rides]);
 
   const handleJoinRide = async (ride) => {
     // check if ride is full and return
@@ -150,7 +253,16 @@ function HomePassenger() {
       <Box px={2} py={3}>
         {/* Check if the pick-up location is not set */}
         {!currentUser?.pickUpLocation ? (
-          <Box sx={{ textAlign: "center", marginTop: 4 }}>
+          <Box
+            sx={{
+              textAlign: "center",
+
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 2,
+            }}
+          >
             <img
               src="/location_not_set.svg"
               width="150px"
@@ -158,8 +270,15 @@ function HomePassenger() {
               alt="Pick-up Location Not Set"
             />
             <Typography sx={{ opacity: 0.6, marginTop: 1 }}>
-              Please set your pick-up location above to find available rides
+              Please set your pick-up location to find available rides
             </Typography>
+            <Button
+              variant="contained"
+              onClick={() => setOpenSetAddress(true)}
+              sx={{ borderRadius: "20px", height: "100%" }}
+            >
+              Set Location
+            </Button>
           </Box>
         ) : ridesLoading ? (
           // Show loading skeletons while rides are loading
@@ -171,14 +290,16 @@ function HomePassenger() {
             justifyContent="center"
             alignItems="center"
           >
-            {loadingSkeletons.map((_, index) => (
-              <Skeleton
-                key={index}
-                sx={{ width: "100%", borderRadius: 2 }}
-                variant="rectangular"
-                height={180}
-              />
-            ))}
+            {Array(3)
+              .fill(null)
+              .map((_, index) => (
+                <Skeleton
+                  key={index}
+                  sx={{ width: "100%", borderRadius: 2 }}
+                  variant="rectangular"
+                  height={180}
+                />
+              ))}
           </Box>
         ) : ridesError ? (
           // Handle error state
@@ -237,6 +358,10 @@ function HomePassenger() {
           </Alert>
         </Snackbar>
       </Box>
+      <SetAddress
+        open={openSetAddress}
+        onClose={() => setOpenSetAddress(false)}
+      />
     </Box>
   );
 }

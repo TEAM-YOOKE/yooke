@@ -30,10 +30,34 @@ import Settings from "./pages/Settings";
 import { AvailableRoutesProvider } from "./helpers/AvailableRoutesContext";
 import AdminRoute from "./components/AdminRoute";
 
+function loadScript(src, position, id) {
+  if (!position) {
+    return;
+  }
+
+  const script = document.createElement("script");
+  script.setAttribute("async", "");
+  script.setAttribute("id", id);
+  script.src = src;
+  position.appendChild(script);
+}
+
 // ProtectedRoute component to handle login logic and account setup checks
 const ProtectedRoute = ({ children }) => {
   const { currentUser, loading } = useAuth();
   const location = useLocation();
+  const loaded = React.useRef(false);
+
+  if (typeof window !== "undefined" && !loaded.current) {
+    if (!document.querySelector("#google-maps")) {
+      loadScript(
+        `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY2}&libraries=places,marker`,
+        document.querySelector("head"),
+        "google-maps"
+      );
+    }
+    loaded.current = true;
+  }
 
   // Show loading spinner while checking authentication status
   if (loading) {
