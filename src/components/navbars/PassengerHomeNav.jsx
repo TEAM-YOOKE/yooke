@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
   Box,
   Button,
@@ -13,13 +13,11 @@ import {
   IconButton,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
-import { useNavigate } from "react-router-dom";
 import { useState, useContext } from "react";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import dayjs from "dayjs";
-import SendIcon from "@mui/icons-material/Send";
 import { LanguageContext } from "../../helpers/LanguageContext";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import Typography from "@mui/material/Typography";
@@ -27,7 +25,6 @@ import { auth, db } from "../../firebase-config";
 import {
   collection,
   doc,
-  getDoc,
   getDocs,
   query,
   updateDoc,
@@ -35,19 +32,21 @@ import {
   arrayRemove,
 } from "firebase/firestore";
 import GoogleMapSearch from "../inputs/GoogleMapSearch";
-import { useAuth } from "../../helpers/GeneralContext";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
-import useRides from "../../hooks/rides";
 import useCurrentUserDoc from "../../hooks/currentUserDoc";
+import SetAddress from "../../modals/SetAddress";
+import EditIcon from "@mui/icons-material/Edit";
 
 const PassengerHomeNav = () => {
-  const navigate = useNavigate();
   const { language } = useContext(LanguageContext);
 
   const [leaveTime, setLeaveTime] = useState(dayjs());
   const [leaveTimeLoading, setLeaveTimeLoading] = useState(false);
   const [openLeaveTimeModal, setOpenLeaveTimeModal] = useState(false);
+  const [openSetAddress, setOpenSetAddress] = useState(false);
+  const [pinLocation, setPinLocation] = useState({});
+
   const [loading, setLoading] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [snackbar, setSnackbar] = useState({
@@ -87,7 +86,7 @@ const PassengerHomeNav = () => {
         }
 
         await updateDoc(personDocRef, {
-          pickUpLocation: searchValue?.structured_formatting?.main_text,
+          pickUpLocation: null,
           assignedCar: null,
         });
 
@@ -194,23 +193,18 @@ const PassengerHomeNav = () => {
           justifyContent="space-between"
         >
           <Box display="flex" flexDirection="column">
-            {/* <Typography component="small" fontSize={"12px"}>
-              Pick up location{" "}
-            </Typography> */}
             <Box
               display="flex"
               alignItems="center"
               gap={2}
               sx={{ fontSize: "12px" }}
             >
-              <GoogleMapSearch value={searchValue} setValue={setSearchValue} />
-              {/* <IconButton
-                color="secondary"
-                onClick={handleUpdateLocation}
-                disabled={loading}
-              >
-                <SendIcon fontSize="large" />
-              </IconButton> */}
+              <GoogleMapSearch
+                value={searchValue}
+                setValue={setSearchValue}
+                setPinLocation={setPinLocation}
+              />
+
               <Button
                 variant="contained"
                 onClick={handleUpdateLocation}
@@ -222,28 +216,42 @@ const PassengerHomeNav = () => {
             </Box>
           </Box>
 
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="space-between"
+            p={1}
+            sx={{
+              border: "1.5px solid rgb(68, 218, 245)",
+              borderRadius: "20px",
+            }}
+            onClick={() => setOpenSetAddress(true)}
+          >
+            <Box display="flex" alignItems="center" gap={2}>
+              <Typography
+                component="span"
+                fontSize={"12px"}
+                color={!currentUser?.pickUpLocation ? "red" : "#22CEA6"}
+              >
+                <LocationOnIcon fontSize="large" />
+              </Typography>
+              <Typography
+                component="span"
+                fontWeight={"bold"}
+                fontSize={"16px"}
+                color={!currentUser?.pickUpLocation && "red"}
+              >
+                {currentUser?.pickUpLocation?.address?.structured_formatting
+                  ?.main_text ||
+                  currentUser?.pickUpLocation ||
+                  "Location Not set"}
+              </Typography>
+            </Box>
+            <EditIcon color="info" />
+          </Box>
+
           <Grid container spacing={2}>
-            {/* <Box display="flex" justifyContent="space-between"> */}
-            <Grid size={4.5}>
-              <Box display="flex" flexDirection="column" alignItems="center">
-                <Typography
-                  component="span"
-                  fontSize={"12px"}
-                  color={!currentUser?.pickUpLocation ? "red" : "#22CEA6"}
-                >
-                  <LocationOnIcon fontSize="small" />
-                </Typography>
-                <Typography
-                  component="span"
-                  fontWeight={"bold"}
-                  fontSize={"12px"}
-                  color={!currentUser?.pickUpLocation && "red"}
-                >
-                  {currentUser?.pickUpLocation ?? "Location Not set"}
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid size={3}>
+            <Grid size={6}>
               <Box
                 onClick={() => setOpenLeaveTimeModal(true)}
                 display="flex"
@@ -274,7 +282,7 @@ const PassengerHomeNav = () => {
                 </Typography>
               </Box>
             </Grid>
-            <Grid size={4.5}>
+            <Grid size={6}>
               <Box display="flex" flexDirection="column" alignItems="center">
                 <Typography
                   component="span"
@@ -318,7 +326,6 @@ const PassengerHomeNav = () => {
                 )}
               </Box>
             </Grid>
-            {/* </Box> */}
           </Grid>
         </Box>
       </AppBar>
@@ -360,6 +367,10 @@ const PassengerHomeNav = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
+      <SetAddress
+        open={openSetAddress}
+        onClose={() => setOpenSetAddress(false)}
+      />
     </>
   );
 };

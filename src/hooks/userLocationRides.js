@@ -34,7 +34,11 @@ const useUserLocationRides = () => {
     currentUserDoc?.pickUpLocation
       ? `rides-${currentUserDoc.pickUpLocation}` // Cache key includes location
       : null, // Do not fetch until pickUpLocation is available
-    () => fetchRidesByLocation(currentUserDoc.pickUpLocation)
+    () =>
+      fetchRidesByLocation(
+        currentUserDoc.pickUpLocation?.address?.structured_formatting
+          ?.main_text || currentUserDoc.pickUpLocation
+      )
   );
 
   useEffect(() => {

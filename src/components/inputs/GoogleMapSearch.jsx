@@ -9,36 +9,37 @@ import { debounce } from "@mui/material/utils";
 import { IconButton, InputBase, Paper } from "@mui/material";
 import ClearIcon from "@mui/icons-material/Clear";
 
-function loadScript(src, position, id) {
-  if (!position) {
-    return;
-  }
-
-  const script = document.createElement("script");
-  script.setAttribute("async", "");
-  script.setAttribute("id", id);
-  script.src = src;
-  position.appendChild(script);
-}
-
 const autocompleteService = { current: null };
 
 const GoogleMapSearch = (props) => {
   const [inputValue, setInputValue] = useState("");
   const [options, setOptions] = useState([]);
-  const loaded = React.useRef(false);
 
-  if (typeof window !== "undefined" && !loaded.current) {
-    if (!document.querySelector("#google-maps")) {
-      loadScript(
-        `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}&libraries=places`,
-        document.querySelector("head"),
-        "google-maps"
-      );
-    }
+  const setGeolocation = (address) => {
+    let lat = "";
+    let lng = "";
+    var geocoder = new window.google.maps.Geocoder();
 
-    loaded.current = true;
-  }
+    geocoder.geocode(
+      {
+        address,
+      },
+      function (results, status) {
+        if (status === "OK") {
+          lat = results[0].geometry.location.lat();
+          lng = results[0].geometry.location.lng();
+          console.log("longitude->", lng);
+          console.log("latitude", lat);
+
+          props.setPinLocation({ lat, lng });
+        } else {
+          console.log(
+            "Geocode was not successful for the following reason: " + status
+          );
+        }
+      }
+    );
+  };
 
   const fetch = React.useMemo(
     () =>
@@ -109,6 +110,7 @@ const GoogleMapSearch = (props) => {
       onChange={(event, newValue) => {
         setOptions(newValue ? [newValue, ...options] : options);
         props.setValue(newValue);
+        setGeolocation(newValue.description);
         console.log(newValue);
       }}
       onInputChange={(event, newInputValue) => {
@@ -138,10 +140,9 @@ const GoogleMapSearch = (props) => {
               <IconButton
                 onClick={() => props.setValue(null)}
                 color="error"
-                sx={{ p: "10px" }}
                 aria-label="directions"
               >
-                <ClearIcon />
+                <ClearIcon fontSize="small" />
               </IconButton>
             ) : (
               ""
