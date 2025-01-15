@@ -62,6 +62,10 @@ const AddressMap = ({
       map,
       draggable: true,
       animation: window.google.maps.Animation.DROP,
+      icon: {
+        // url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+        url: "/pin.png",
+      },
     });
 
     markerRef.current = marker;
