@@ -137,15 +137,14 @@ const SetAddress = ({ onClose, open }) => {
     }
   };
 
-  const getCurrentLocation = (map) => {
+  const goToCurrentLocation = (map) => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          console.log("User's current location:", { latitude, longitude });
-          if (!pinLocation) {
-            setPinLocation({ lat: latitude, lng: longitude });
-          }
+          console.log("User's current location->", { latitude, longitude });
+
+          setPinLocation({ lat: latitude, lng: longitude });
         },
         (error) => {
           console.error("Error fetching location:", error);
@@ -238,7 +237,6 @@ const SetAddress = ({ onClose, open }) => {
                   setAddressLoading={setAddressLoading}
                   pinLocation={pinLocation}
                   setPinLocation={setPinLocation}
-                  getCurrentLocation={getCurrentLocation}
                 />
                 {loading && <CircularProgressLoading />}
               </Wrapper>
@@ -274,7 +272,7 @@ const SetAddress = ({ onClose, open }) => {
                   >
                     {loading ? "Loading..." : "Set Location"}
                   </Button>
-                  <IconButton onClick={getCurrentLocation}>
+                  <IconButton onClick={goToCurrentLocation}>
                     <GpsFixedIcon
                       color="info"
                       fontSize="large"
