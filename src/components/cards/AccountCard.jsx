@@ -35,7 +35,10 @@ const ACard1 = ({ user, handleDelete, handleClickOpenAccountForm }) => {
             <strong>WhatsApp:</strong> {user?.whatsappNumber || "N/A"}
           </Typography>
           <Typography variant="body1" sx={{ color: "#4a4a4a" }}>
-            <strong>Location:</strong> {user?.pickUpLocation || "N/A"}
+            <strong>Location:</strong>{" "}
+            {user?.pickUpLocation?.address?.structured_formatting?.main_text ||
+              user?.pickUpLocation ||
+              "N/A"}
           </Typography>
           <Typography variant="body2">
             <strong>Company:</strong> {user.company}
@@ -96,7 +99,9 @@ const ACard2 = ({ user, handleDelete }) => {
     >
       <CardContent>
         <Typography variant="body1" sx={{ color: "#4a4a4a" }}>
-          <strong>Location:</strong> {user?.pickupLocation}
+          <strong>Location:</strong>{" "}
+          {user?.pickUpLocation?.address?.structured_formatting?.main_text ||
+            user?.pickUpLocation}
         </Typography>
         <Typography variant="body1" sx={{ color: "#4a4a4a" }}>
           <strong>Company:</strong> {user.company}
