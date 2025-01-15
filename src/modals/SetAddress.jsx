@@ -24,6 +24,7 @@ import {
 } from "firebase/firestore";
 import { Wrapper, Status } from "@googlemaps/react-wrapper";
 import CloseIcon from "@mui/icons-material/Close";
+import GpsFixedIcon from "@mui/icons-material/GpsFixed";
 // import MyMapComponent from "../MyMapComponent";
 import CircularProgressLoading from "../components/feedbacks/CircularProgressLoading";
 import useCurrentUserDoc from "../hooks/currentUserDoc";
@@ -136,6 +137,30 @@ const SetAddress = ({ onClose, open }) => {
     }
   };
 
+  const getCurrentLocation = (map) => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          console.log("User's current location:", { latitude, longitude });
+          if (!pinLocation) {
+            setPinLocation({ lat: latitude, lng: longitude });
+          }
+        },
+        (error) => {
+          console.error("Error fetching location:", error);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
+        }
+      );
+    } else {
+      console.error("Geolocation is not supported by the browser");
+    }
+  };
+
   const containerRef = React.useRef(null);
 
   return (
@@ -213,6 +238,7 @@ const SetAddress = ({ onClose, open }) => {
                   setAddressLoading={setAddressLoading}
                   pinLocation={pinLocation}
                   setPinLocation={setPinLocation}
+                  getCurrentLocation={getCurrentLocation}
                 />
                 {loading && <CircularProgressLoading />}
               </Wrapper>
@@ -248,6 +274,18 @@ const SetAddress = ({ onClose, open }) => {
                   >
                     {loading ? "Loading..." : "Set Location"}
                   </Button>
+                  <IconButton onClick={getCurrentLocation}>
+                    <GpsFixedIcon
+                      color="info"
+                      fontSize="large"
+                      sx={{
+                        position: "absolute",
+                        z: 99999,
+                        right: 2,
+                        bottom: 90,
+                      }}
+                    />
+                  </IconButton>
                 </AppBar>
               </Box>
             </Box>
