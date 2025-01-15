@@ -192,7 +192,7 @@ const PassengerHomeNav = () => {
           gap={3}
           justifyContent="space-between"
         >
-          <Box display="flex" flexDirection="column">
+          {/* <Box display="flex" flexDirection="column">
             <Box
               display="flex"
               alignItems="center"
@@ -214,7 +214,7 @@ const PassengerHomeNav = () => {
                 {loading ? "Updating..." : "Submit"}
               </Button>
             </Box>
-          </Box>
+          </Box> */}
 
           <Box
             display="flex"
