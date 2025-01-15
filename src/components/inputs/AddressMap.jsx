@@ -6,11 +6,34 @@ const AddressMap = ({
   pinLocation,
   address,
   setPinLocation,
-  getCurrentLocation,
 }) => {
   const mapRef = useRef(null);
   const markerRef = useRef(null);
   const userMarkerRef = useRef(null);
+
+  const getCurrentLocation = (map) => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          console.log("User's current location:", { latitude, longitude });
+          if (!pinLocation) {
+            setPinLocation({ lat: latitude, lng: longitude });
+          }
+        },
+        (error) => {
+          console.error("Error fetching location:", error);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
+        }
+      );
+    } else {
+      console.error("Geolocation is not supported by the browser");
+    }
+  };
 
   useEffect(() => {
     const geocoder = new window.google.maps.Geocoder();
