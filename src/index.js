@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import * as ReactDOM from "react-dom/client";
 import { createTheme, ThemeProvider, CssBaseline } from "@mui/material";
 import {
@@ -10,7 +10,6 @@ import {
 import "./index.css";
 import Page from "./landing-page/Page";
 import Login from "./pages/Login";
-import CreateAccount from "./pages/CreateAccount";
 import AppLayout from "./pages/AppLayout";
 import { LanguageProvider } from "./helpers/LanguageContext";
 import Home from "./pages/Home";
@@ -31,26 +30,13 @@ import { AvailableRoutesProvider } from "./helpers/AvailableRoutesContext";
 import AdminRoute from "./components/AdminRoute";
 import useScript from "./hooks/mapScript";
 
-function loadScript(src, position, id) {
-  if (!position) {
-    return;
-  }
-
-  const script = document.createElement("script");
-  script.setAttribute("async", "");
-  script.setAttribute("id", id);
-  script.src = src;
-  position.appendChild(script);
-}
-
 // ProtectedRoute component to handle login logic and account setup checks
 const ProtectedRoute = ({ children }) => {
   const { currentUser, loading } = useAuth();
   const location = useLocation();
-  const loaded = React.useRef(false);
 
   const scriptLoaded = useScript(
-    `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}&libraries=places,marker`,
+    `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY2}&libraries=places,marker`,
     "google-maps"
   );
 
