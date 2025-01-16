@@ -274,8 +274,13 @@ function HomePassenger() {
             </Typography>
             <Button
               variant="contained"
+              color="secondary"
               onClick={() => setOpenSetAddress(true)}
-              sx={{ borderRadius: "20px", height: "100%" }}
+              sx={{
+                color: "white",
+                borderRadius: "20px",
+                height: "100%",
+              }}
             >
               Set Location
             </Button>

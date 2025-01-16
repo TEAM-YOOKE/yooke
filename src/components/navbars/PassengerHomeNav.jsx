@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Box,
   Button,
@@ -64,50 +64,50 @@ const PassengerHomeNav = () => {
     refreshRideData,
   } = useCurrentUserDoc();
 
-  const handleUpdateLocation = async () => {
-    try {
-      setLoading(true);
-      const personQ = query(
-        collection(db, "accounts"),
-        where("email", "==", currentUser.email)
-      );
-      const personQuerySnapshot = await getDocs(personQ);
+  // const handleUpdateLocation = async () => {
+  //   try {
+  //     setLoading(true);
+  //     const personQ = query(
+  //       collection(db, "accounts"),
+  //       where("email", "==", currentUser.email)
+  //     );
+  //     const personQuerySnapshot = await getDocs(personQ);
 
-      if (!personQuerySnapshot.empty) {
-        const personDoc = personQuerySnapshot.docs[0];
-        const personDocRef = doc(db, "accounts", personDoc.id);
-        const personData = personDoc.data();
-        console.log(personData);
-        if (personData.assignedCar) {
-          const rideRef = doc(db, "rides", personData.assignedCar);
-          await updateDoc(rideRef, {
-            passengers: arrayRemove(currentUser.id),
-          });
-        }
+  //     if (!personQuerySnapshot.empty) {
+  //       const personDoc = personQuerySnapshot.docs[0];
+  //       const personDocRef = doc(db, "accounts", personDoc.id);
+  //       const personData = personDoc.data();
+  //       console.log(personData);
+  //       if (personData.assignedCar) {
+  //         const rideRef = doc(db, "rides", personData.assignedCar);
+  //         await updateDoc(rideRef, {
+  //           passengers: arrayRemove(currentUser.id),
+  //         });
+  //       }
 
-        await updateDoc(personDocRef, {
-          pickUpLocation: null,
-          assignedCar: null,
-        });
+  //       await updateDoc(personDocRef, {
+  //         pickUpLocation: null,
+  //         assignedCar: null,
+  //       });
 
-        console.log("location updated");
-        setSnackbar({
-          open: true,
-          message: "Location updated",
-          severity: "success",
-        });
-        await refreshCurrentUserDoc();
-        await refreshRideData();
-        setSearchValue("");
-      } else {
-        console.log("person not found");
-      }
-    } catch (error) {
-      console.log("error updating location", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  //       console.log("location updated");
+  //       setSnackbar({
+  //         open: true,
+  //         message: "Location updated",
+  //         severity: "success",
+  //       });
+  //       await refreshCurrentUserDoc();
+  //       await refreshRideData();
+  //       setSearchValue("");
+  //     } else {
+  //       console.log("person not found");
+  //     }
+  //   } catch (error) {
+  //     console.log("error updating location", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const handleUpdateLeaveTime = async () => {
     try {

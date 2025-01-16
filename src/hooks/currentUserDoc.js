@@ -3,50 +3,64 @@ import { fetchFirestoreCollection } from "../services/firestoreConfig";
 import { useAuth } from "../helpers/GeneralContext";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase-config";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const useCurrentUserDoc = () => {
   const { currentUser } = useAuth();
-  const [myCurrentUserDoc, setMyCurrentUserDoc] = useState(null);
+  const [currentUserDoc, setCurrentUserDoc] = useState(null);
+  const [rideData, setRideData] = useState(null);
+  const [rideDataLoading, setRideDataLoading] = useState(false);
 
+  // Fetch user document
   const fetchCurrentUserDoc = async () => {
-    if (!currentUser) return null; // Ensure a user is authenticated
+    if (!currentUser) return null;
 
-    const accounts = await fetchFirestoreCollection("accounts"); // Fetch all accounts
-    setMyCurrentUserDoc(
-      accounts.find((account) => account.email === currentUser.email)
+    const accounts = await fetchFirestoreCollection("accounts");
+    const userDoc = accounts.find(
+      (account) => account.email === currentUser.email
     );
-    return accounts.find((account) => account.email === currentUser.email); // Find the current user's document
+    setCurrentUserDoc(userDoc);
+    return userDoc;
   };
 
-  const fetchRideData = async () => {
-    if (!myCurrentUserDoc || !myCurrentUserDoc.assignedCar) return null;
+  // Fetch ride data
+  const fetchRideData = async (userDoc) => {
+    if (!userDoc || !userDoc.assignedCar) {
+      setRideData(null);
+      return null;
+    }
 
     try {
-      const rideDocRef = doc(db, "rides", myCurrentUserDoc.assignedCar);
+      setRideDataLoading(true);
+      const rideDocRef = doc(db, "rides", userDoc.assignedCar);
       const rideSnapshot = await getDoc(rideDocRef);
-      const rideData = rideSnapshot.data();
+      const ride = rideSnapshot.data();
 
-      if (rideData) {
-        const driverDocRef = doc(db, "accounts", rideData.driverId);
+      console.log("ride", ride);
+      if (ride && ride.passengers.includes(userDoc.id)) {
+        const driverDocRef = doc(db, "accounts", ride.driverId);
         const driverSnapshot = await getDoc(driverDocRef);
 
-        if (driverSnapshot.exists()) {
-          const driverData = driverSnapshot.data();
-          return {
-            ride: rideData,
-            car: { name: driverData.carName, plate: driverData.carPlate },
-          };
-        } else {
-          return { ride: rideData, car: null };
-        }
+        const carData = driverSnapshot.exists()
+          ? {
+              name: driverSnapshot.data().carName,
+              plate: driverSnapshot.data().carPlate,
+            }
+          : null;
+
+        const rideDetails = { ...ride, car: carData };
+        setRideData(rideDetails);
+        return rideDetails;
       }
     } catch (error) {
       console.error("Error fetching ride data:", error);
       return null;
+    } finally {
+      setRideDataLoading(false);
     }
   };
 
+  // SWR for user document
   const {
     data: userDoc,
     error: userError,
@@ -54,15 +68,13 @@ const useCurrentUserDoc = () => {
     mutate: refreshUserDoc,
   } = useSWR(currentUser ? "currentUserDoc" : null, fetchCurrentUserDoc);
 
-  const {
-    data: rideData,
-    error: rideError,
-    isLoading: rideLoading,
-    mutate: refreshRideData,
-  } = useSWR(
-    myCurrentUserDoc && myCurrentUserDoc.assignedCar ? "rideData" : null,
-    fetchRideData
-  );
+  // Fetch ride data whenever userDoc changes
+  useEffect(() => {
+    if (userDoc) {
+      console.log("userDoc", userDoc);
+      fetchRideData(userDoc);
+    }
+  }, [userDoc]);
 
   return {
     currentUserDoc: userDoc,
@@ -70,9 +82,8 @@ const useCurrentUserDoc = () => {
     refreshCurrentUserDoc: refreshUserDoc,
     currentUserDocError: userError,
     rideData,
-    rideDataLoading: rideLoading,
-    refreshRideData,
-    rideDataError: rideError,
+    rideDataLoading,
+    refreshRideData: () => fetchRideData(userDoc),
   };
 };
 
