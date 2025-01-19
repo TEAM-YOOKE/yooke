@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState, useContext } from "react";
 import {
   Box,
   Button,
@@ -11,9 +11,9 @@ import {
   Snackbar,
   Alert,
   IconButton,
+  Toolbar,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
-import { useState, useContext } from "react";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
@@ -33,6 +33,7 @@ import {
 } from "firebase/firestore";
 import GoogleMapSearch from "../inputs/GoogleMapSearch";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import useCurrentUserDoc from "../../hooks/currentUserDoc";
 import SetAddress from "../../modals/SetAddress";
@@ -40,6 +41,8 @@ import EditIcon from "@mui/icons-material/Edit";
 
 const PassengerHomeNav = () => {
   const { language } = useContext(LanguageContext);
+  const navbarRef = useRef(null);
+  const [navbarHeight, setNavbarHeight] = useState(0);
 
   const [leaveTime, setLeaveTime] = useState(dayjs());
   const [leaveTimeLoading, setLeaveTimeLoading] = useState(false);
@@ -54,6 +57,13 @@ const PassengerHomeNav = () => {
     message: "",
     severity: "success",
   });
+
+  useEffect(() => {
+    if (navbarRef.current) {
+      console.log("nav ref", navbarRef);
+      setNavbarHeight(navbarRef.current.offsetHeight);
+    }
+  }, [navbarHeight]);
 
   const {
     currentUserDoc: currentUser,
@@ -178,10 +188,11 @@ const PassengerHomeNav = () => {
   return (
     <>
       <AppBar
-        position="sticky"
+        ref={navbarRef}
+        position="fixed"
         sx={{ bgcolor: "#fff" }}
         color="inherit"
-        elevation={1}
+        elevation={3}
       >
         <Box
           display="flex"
@@ -251,38 +262,7 @@ const PassengerHomeNav = () => {
           </Box>
 
           <Grid container spacing={2}>
-            {/* <Grid size={6}>
-              <Box
-                onClick={() => setOpenLeaveTimeModal(true)}
-                display="flex"
-                flexDirection="column"
-                alignItems="center"
-              >
-                <Typography
-                  component="span"
-                  fontSize={"12px"}
-                  color={"#33bdbd"}
-                >
-                  <AccessTimeIcon fontSize="small" />
-                </Typography>
-                <Typography
-                  component="span"
-                  fontWeight={"bold"}
-                  fontSize={"12px"}
-                >
-                  {currentUser?.leaveTime
-                    ? new Date(currentUser.leaveTime).toLocaleTimeString(
-                        "en-US",
-                        {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        }
-                      )
-                    : "Not set"}
-                </Typography>
-              </Box>
-            </Grid> */}
-            <Grid size={12}>
+            <Grid size={4}>
               <Box display="flex" flexDirection="column" alignItems="center">
                 <Typography
                   component="span"
@@ -326,9 +306,58 @@ const PassengerHomeNav = () => {
                 )}
               </Box>
             </Grid>
+            <Grid size={6}>
+              <Box
+                onClick={() => setOpenLeaveTimeModal(true)}
+                display="flex"
+                flexDirection="column"
+                alignItems="center"
+              >
+                <Typography
+                  component="span"
+                  fontSize={"12px"}
+                  color={"#33bdbd"}
+                >
+                  <AccessTimeIcon fontSize="small" />
+                </Typography>
+                <Typography
+                  component="span"
+                  fontWeight={"bold"}
+                  fontSize={"12px"}
+                >
+                  {currentUser?.leaveTime
+                    ? new Date(currentUser.leaveTime).toLocaleTimeString(
+                        "en-US",
+                        {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }
+                      )
+                    : "Not set"}{" "}
+                  -{" "}
+                  {currentUser?.leaveTime
+                    ? new Date(currentUser.leaveTime).toLocaleTimeString(
+                        "en-US",
+                        {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }
+                      )
+                    : "Not set"}
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid size={2}>
+              <Box display="flex" flexDirection="column" alignItems="center">
+                <IconButton sx={{ border: "1px solid #22CEA6" }}>
+                  <MoreHorizRoundedIcon color="info" />
+                </IconButton>
+              </Box>
+            </Grid>
           </Grid>
         </Box>
       </AppBar>
+      <Toolbar sx={{ height: navbarHeight, mb: 2, bgcolor: "#fff" }} />
       <Dialog
         open={openLeaveTimeModal}
         onClose={() => setOpenLeaveTimeModal(false)}
