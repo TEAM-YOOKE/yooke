@@ -144,10 +144,12 @@ function HomePassenger() {
     }
     if (currentUser.assignedCar) {
       if (
-        window.confirm(
+        !window.confirm(
           "Do you want to exit your current ride and join this ride?"
         )
-      ) {
+      )
+        return;
+      else {
         const rideRef = doc(db, "rides", currentUser.assignedCar);
         await updateDoc(rideRef, {
           passengers: arrayRemove(currentUser.id),
