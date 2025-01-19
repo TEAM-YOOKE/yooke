@@ -251,7 +251,7 @@ const PassengerHomeNav = () => {
           </Box>
 
           <Grid container spacing={2}>
-            <Grid size={6}>
+            {/* <Grid size={6}>
               <Box
                 onClick={() => setOpenLeaveTimeModal(true)}
                 display="flex"
@@ -261,7 +261,7 @@ const PassengerHomeNav = () => {
                 <Typography
                   component="span"
                   fontSize={"12px"}
-                  color={"#22CEA6"}
+                  color={"#33bdbd"}
                 >
                   <AccessTimeIcon fontSize="small" />
                 </Typography>
@@ -281,13 +281,13 @@ const PassengerHomeNav = () => {
                     : "Not set"}
                 </Typography>
               </Box>
-            </Grid>
-            <Grid size={6}>
+            </Grid> */}
+            <Grid size={12}>
               <Box display="flex" flexDirection="column" alignItems="center">
                 <Typography
                   component="span"
                   fontSize={"12px"}
-                  color={"#22CEA6"}
+                  color={"#33bdbd"}
                 >
                   <DirectionsCarIcon fontSize="small" />
                 </Typography>

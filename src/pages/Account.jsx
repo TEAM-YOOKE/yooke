@@ -81,7 +81,7 @@ export default function Account() {
             {currentUser?.username || language.username}
           </Typography>
           <Typography variant="body2" color="textSecondary">
-            {currentUser?.phoneNumber || "+237 670907115"}
+            {currentUser?.whatsappNumber || "+237 670907115"}
           </Typography>
           <Typography variant="body2" color="textSecondary">
             {currentUser?.email || "ray.jhon@gmail.com"}
