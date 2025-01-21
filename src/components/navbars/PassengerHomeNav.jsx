@@ -306,7 +306,7 @@ const PassengerHomeNav = () => {
           </Box>
 
           <Grid container spacing={2}>
-            <Grid size={rideData ? 4 : 12}>
+            <Grid size={rideData ? 5 : 12}>
               <Box
                 display="flex"
                 gap={1}
@@ -357,7 +357,7 @@ const PassengerHomeNav = () => {
             </Grid>
             {rideData ? (
               <>
-                <Grid size={6}>
+                <Grid size={5}>
                   <Box
                     // onClick={() => setOpenLeaveTimeModal(true)}
                     display="flex"

@@ -107,7 +107,7 @@ const AdminAddNew = ({ open, handleClose, user }) => {
   const handleSubmit = async () => {
     if (!validateForm()) return;
     setLoading(true);
-    const apiKey = process.env.REACT_APP_FIREBASE_API_KEY;
+    const apiKey = process.env.REACT_APP_apiKey;
     // console.log(process.env.REACT_APP_FIREBASE_API_KEY);
     // return;
     try {
