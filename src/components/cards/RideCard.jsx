@@ -150,7 +150,7 @@ const RideCard = ({
         }
       }
     );
-  }, []);
+  }, [currentUser]);
   const handleButtonClick = async (ride) => {
     try {
       setLoading(true);
