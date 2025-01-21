@@ -12,9 +12,19 @@ import dayjs from "dayjs";
 import { TextField } from "@mui/material";
 import { LanguageContext } from "../helpers/LanguageContext";
 import GoogleMapSearchMultiple from "../components/inputs/GoogleMapSearchMultiple";
+import useCurrentCarOwnerDoc from "../hooks/currentCarOwnerDoc";
 
 function HomeCarOwner() {
-  const { currentUser, rideData, updateUser } = useAuth();
+  // const { currentUser, rideData, updateUser } = useAuth();
+  const {
+    currentUserDoc: currentUser,
+    currentUserDocLoading,
+    refreshCurrentCarOwnerDoc,
+    rideData,
+    rideDataLoading,
+    refreshRideData,
+  } = useCurrentCarOwnerDoc();
+
   const navigate = useNavigate();
   const { language } = useContext(LanguageContext);
 
@@ -35,14 +45,16 @@ function HomeCarOwner() {
   const handleSaveChanges = async () => {
     setSaving(true);
     try {
-      const rideDocRef = doc(db, "rides", rideData.docId);
+      const rideDocRef = doc(db, "rides", rideData.id);
       await updateDoc(rideDocRef, {
         acceptingRideRequests,
         leaveTime: leaveTime.toISOString(),
         stopPoints,
       });
       setChangesMade(false);
-      await updateUser(currentUser.email); // Refresh the user data in context
+      // await updateUser(currentUser.email); // Refresh the user data in context
+      await refreshCurrentCarOwnerDoc();
+      await refreshRideData();
     } catch (error) {
       console.error("Error updating ride data:", error);
     } finally {

@@ -38,6 +38,7 @@ import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import useCurrentUserDoc from "../../hooks/currentUserDoc";
 import SetAddress from "../../modals/SetAddress";
 import EditIcon from "@mui/icons-material/Edit";
+import RideDetails from "../../modals/RideDetails";
 
 const PassengerHomeNav = () => {
   const { language } = useContext(LanguageContext);
@@ -46,12 +47,10 @@ const PassengerHomeNav = () => {
 
   const [leaveTime, setLeaveTime] = useState(dayjs());
   const [leaveTimeLoading, setLeaveTimeLoading] = useState(false);
+  const [arrivalTime, setArrivalTime] = useState(null);
   const [openLeaveTimeModal, setOpenLeaveTimeModal] = useState(false);
   const [openSetAddress, setOpenSetAddress] = useState(false);
-  const [pinLocation, setPinLocation] = useState({});
-
-  const [loading, setLoading] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
+  const [openRideDetails, setOpenRideDetails] = useState(false);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -73,6 +72,51 @@ const PassengerHomeNav = () => {
     rideDataLoading,
     refreshRideData,
   } = useCurrentUserDoc();
+
+  useEffect(() => {
+    console.log("Ride data-->", rideData);
+    if (!rideData) return;
+    const directionsService = new window.google.maps.DirectionsService();
+    directionsService.route(
+      {
+        origin: new window.google.maps.LatLng(
+          currentUser?.pickUpLocation?.pinLocation.lat,
+          currentUser?.pickUpLocation?.pinLocation.lng
+        ),
+        // destination: new window.google.maps.LatLng(),
+        destination: rideData?.stopPoints[0],
+        travelMode: window.google.maps.TravelMode.DRIVING,
+        drivingOptions: {
+          departureTime: new Date(Date.now() + 1000), // 1 second from now
+          trafficModel: "bestguess",
+        },
+      },
+      (result, status) => {
+        if (status === window.google.maps.DirectionsStatus.OK) {
+          // Get the distance from the result object
+          const distance = result.routes[0].legs[0].distance.text;
+          const duration = Math.round(
+            result.routes[0].legs[0].duration_in_traffic.value / 60
+          );
+
+          // Do something with the distance and directions
+          console.log(`Duration: ${duration}`);
+          const carLeaveDate = new Date(rideData?.leaveTime);
+          const durationInMilliseconds = duration * 60 * 1000; // Convert minutes to milliseconds
+          const updatedDate = new Date(
+            carLeaveDate.getTime() + durationInMilliseconds
+          ).toISOString();
+
+          setArrivalTime(
+            new Date(updatedDate).toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          );
+        }
+      }
+    );
+  }, [currentUser, rideData]);
 
   // const handleUpdateLocation = async () => {
   //   try {
@@ -233,7 +277,7 @@ const PassengerHomeNav = () => {
             justifyContent="space-between"
             p={1}
             sx={{
-              border: "1.5px solid rgb(68, 218, 245)",
+              border: "2px solid #22CEA6",
               borderRadius: "20px",
             }}
             onClick={() => setOpenSetAddress(true)}
@@ -262,7 +306,7 @@ const PassengerHomeNav = () => {
           </Box>
 
           <Grid container spacing={2}>
-            <Grid size={4}>
+            <Grid size={rideData ? 4 : 12}>
               <Box display="flex" flexDirection="column" alignItems="center">
                 <Typography
                   component="span"
@@ -306,54 +350,68 @@ const PassengerHomeNav = () => {
                 )}
               </Box>
             </Grid>
-            <Grid size={6}>
-              <Box
-                onClick={() => setOpenLeaveTimeModal(true)}
-                display="flex"
-                flexDirection="column"
-                alignItems="center"
-              >
-                <Typography
-                  component="span"
-                  fontSize={"12px"}
-                  color={"#33bdbd"}
-                >
-                  <AccessTimeIcon fontSize="small" />
-                </Typography>
-                <Typography
-                  component="span"
-                  fontWeight={"bold"}
-                  fontSize={"12px"}
-                >
-                  {currentUser?.leaveTime
-                    ? new Date(currentUser.leaveTime).toLocaleTimeString(
-                        "en-US",
-                        {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        }
-                      )
-                    : "Not set"}{" "}
-                  -{" "}
-                  {currentUser?.leaveTime
-                    ? new Date(currentUser.leaveTime).toLocaleTimeString(
-                        "en-US",
-                        {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        }
-                      )
-                    : "Not set"}
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid size={2}>
-              <Box display="flex" flexDirection="column" alignItems="center">
-                <IconButton sx={{ border: "1px solid #22CEA6" }}>
-                  <MoreHorizRoundedIcon color="info" />
-                </IconButton>
-              </Box>
-            </Grid>
+            {rideData ? (
+              <>
+                <Grid size={6}>
+                  <Box
+                    onClick={() => setOpenLeaveTimeModal(true)}
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="center"
+                  >
+                    <Typography
+                      component="span"
+                      fontSize={"12px"}
+                      color={"#33bdbd"}
+                    >
+                      <AccessTimeIcon fontSize="small" />
+                    </Typography>
+                    <Typography
+                      component="span"
+                      fontWeight={"bold"}
+                      fontSize={"12px"}
+                    >
+                      {/* {currentUser?.leaveTime
+                        ? new Date(currentUser.leaveTime).toLocaleTimeString(
+                            "en-US",
+                            {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            }
+                          )
+                        : "Not set"}{" "}
+                      -{" "}
+                      {currentUser?.leaveTime
+                        ? new Date(currentUser.leaveTime).toLocaleTimeString(
+                            "en-US",
+                            {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            }
+                          )
+                        : "Not set"} */}
+                      {arrivalTime}
+                    </Typography>
+                  </Box>
+                </Grid>
+                <Grid size={2}>
+                  <Box
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="center"
+                  >
+                    <IconButton
+                      sx={{ border: "2px solid #22CEA6" }}
+                      onClick={() => setOpenRideDetails(true)}
+                    >
+                      <MoreHorizRoundedIcon color="info" />
+                    </IconButton>
+                  </Box>
+                </Grid>
+              </>
+            ) : (
+              ""
+            )}
           </Grid>
         </Box>
       </AppBar>
@@ -399,6 +457,10 @@ const PassengerHomeNav = () => {
       <SetAddress
         open={openSetAddress}
         onClose={() => setOpenSetAddress(false)}
+      />
+      <RideDetails
+        open={openRideDetails}
+        onClose={() => setOpenRideDetails(false)}
       />
     </>
   );

@@ -28,6 +28,7 @@ export default function Account() {
   const { refreshRides } = useUserLocationRides();
 
   const handleLogout = async () => {
+    if (!window.confirm("Are you sure you want to logout?")) return;
     setLoading(true);
     try {
       await logout();

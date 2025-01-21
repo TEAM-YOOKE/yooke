@@ -15,7 +15,11 @@ import {
 } from "@mui/material";
 import { db, auth } from "../firebase-config";
 import { addDoc, collection, doc, updateDoc, getDoc } from "firebase/firestore";
-import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  signOut,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 
 import useAccounts from "../hooks/accounts";
 
@@ -102,8 +106,10 @@ const AdminAddNew = ({ open, handleClose, user }) => {
 
   const handleSubmit = async () => {
     if (!validateForm()) return;
-
     setLoading(true);
+    const apiKey = process.env.REACT_APP_FIREBASE_API_KEY;
+    // console.log(process.env.REACT_APP_FIREBASE_API_KEY);
+    // return;
     try {
       if (user) {
         // Update existing user
@@ -116,11 +122,38 @@ const AdminAddNew = ({ open, handleClose, user }) => {
         });
       } else {
         const initialPassword = generatePassword();
-        const userCredential = await createUserWithEmailAndPassword(
-          auth,
-          formData.email,
-          initialPassword
+
+        // const userCredential = await createUserWithEmailAndPassword(
+        //   auth,
+        //   formData.email,
+        //   initialPassword
+        // );
+
+        // // Log the original user back in
+        // await signOut(auth);
+        // await signInWithEmailAndPassword(currentUserEmail, currentUserPassword);
+
+        // Create user using Firebase REST API
+        const response = await fetch(
+          `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              email: formData.email,
+              password: initialPassword,
+              returnSecureToken: false, // Prevent login
+            }),
+          }
         );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.log(apiKey);
+          throw new Error(errorData.error.message || "Failed to create user");
+        }
 
         await addDoc(collection(db, "accounts"), {
           ...formData,
@@ -136,8 +169,6 @@ const AdminAddNew = ({ open, handleClose, user }) => {
         });
       }
 
-      // await signOut(auth);
-
       setFormData({
         email: "",
         company: "",
@@ -146,7 +177,8 @@ const AdminAddNew = ({ open, handleClose, user }) => {
         whatsappNumber: "",
         pickUpLocation: "",
       });
-      refreshAccounts();
+
+      await refreshAccounts();
       handleClose();
     } catch (error) {
       console.error("Failed to create account", error);

@@ -164,27 +164,27 @@ function HomePassenger() {
         await refreshCurrentUserDoc();
       }
     }
-    const passengerLeaveTime = dayjs(currentUser?.leaveTime);
-    const rideLeaveTime = dayjs(ride.leaveTime);
+    // const passengerLeaveTime = dayjs(currentUser?.leaveTime);
+    // const rideLeaveTime = dayjs(ride.leaveTime);
 
-    const passengerLeaveTimeHours = passengerLeaveTime.hour();
-    const passengerLeaveTimeMinutes = passengerLeaveTime.minute();
+    // const passengerLeaveTimeHours = passengerLeaveTime.hour();
+    // const passengerLeaveTimeMinutes = passengerLeaveTime.minute();
 
-    const rideLeaveTimeHours = rideLeaveTime.hour();
-    const rideLeaveTimeMinutes = rideLeaveTime.minute();
+    // const rideLeaveTimeHours = rideLeaveTime.hour();
+    // const rideLeaveTimeMinutes = rideLeaveTime.minute();
 
-    if (
-      passengerLeaveTimeHours < rideLeaveTimeHours ||
-      (passengerLeaveTimeHours === rideLeaveTimeHours &&
-        passengerLeaveTimeMinutes < rideLeaveTimeMinutes)
-    ) {
-      setSnackbar({
-        open: true,
-        message: "Your pick up time must be after the ride's leave time.",
-        severity: "error",
-      });
-      return;
-    }
+    // if (
+    //   passengerLeaveTimeHours < rideLeaveTimeHours ||
+    //   (passengerLeaveTimeHours === rideLeaveTimeHours &&
+    //     passengerLeaveTimeMinutes < rideLeaveTimeMinutes)
+    // ) {
+    //   setSnackbar({
+    //     open: true,
+    //     message: "Your pick up time must be after the ride's leave time.",
+    //     severity: "error",
+    //   });
+    //   return;
+    // }
     setLoadingRideId(ride.id);
     try {
       const rideRef = doc(db, "rides", ride.id);

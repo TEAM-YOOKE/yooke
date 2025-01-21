@@ -229,7 +229,7 @@ const SetAddress = ({ onClose, open }) => {
 
               <Wrapper
                 render={render}
-                apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY2}
+                apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
               >
                 <AddressMap
                   address={address}
