@@ -307,13 +307,18 @@ const PassengerHomeNav = () => {
 
           <Grid container spacing={2}>
             <Grid size={rideData ? 4 : 12}>
-              <Box display="flex" flexDirection="column" alignItems="center">
+              <Box
+                display="flex"
+                gap={1}
+                justifyContent="center"
+                alignItems="center"
+              >
                 <Typography
                   component="span"
                   fontSize={"12px"}
                   color={"#33bdbd"}
                 >
-                  <DirectionsCarIcon fontSize="small" />
+                  <DirectionsCarIcon fontSize="large" />
                 </Typography>
                 {rideDataLoading ? (
                   <CircularProgress size={15} />
@@ -321,19 +326,19 @@ const PassengerHomeNav = () => {
                   <Box
                     display="flex"
                     flexDirection="column"
-                    alignItems="center"
+                    // alignItems="center"
                     justifyContent="center"
                   >
                     <Typography
                       component="span"
-                      fontSize={"12px"}
+                      fontSize={"13px"}
                       fontWeight={"bold"}
                     >
                       {rideData.car.name}
                     </Typography>
                     <Typography
                       component="span"
-                      fontSize={"12px"}
+                      fontSize={"13px"}
                       fontWeight={"bold"}
                     >
                       {rideData.car.plate || "N/A"}
@@ -343,7 +348,7 @@ const PassengerHomeNav = () => {
                   <Typography
                     component="span"
                     fontWeight={"bold"}
-                    fontSize={"12px"}
+                    fontSize={"13px"}
                   >
                     Not paired
                   </Typography>
@@ -354,22 +359,24 @@ const PassengerHomeNav = () => {
               <>
                 <Grid size={6}>
                   <Box
-                    onClick={() => setOpenLeaveTimeModal(true)}
+                    // onClick={() => setOpenLeaveTimeModal(true)}
                     display="flex"
-                    flexDirection="column"
+                    // flexDirection="column"
                     alignItems="center"
+                    justifyContent="center"
+                    gap={1}
                   >
                     <Typography
                       component="span"
                       fontSize={"12px"}
                       color={"#33bdbd"}
                     >
-                      <AccessTimeIcon fontSize="small" />
+                      <AccessTimeIcon fontSize="large" />
                     </Typography>
                     <Typography
                       component="span"
                       fontWeight={"bold"}
-                      fontSize={"12px"}
+                      fontSize={"13px"}
                     >
                       {/* {currentUser?.leaveTime
                         ? new Date(currentUser.leaveTime).toLocaleTimeString(

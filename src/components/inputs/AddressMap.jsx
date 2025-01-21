@@ -1,6 +1,24 @@
 import { Box } from "@mui/material";
 import React, { useEffect, useState, useRef } from "react";
 
+const mapStyles = [
+  {
+    featureType: "poi",
+    elementType: "labels.icon",
+    stylers: [{ color: "#b1b1b1" }],
+  },
+  {
+    featureType: "poi",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#4e4e4e" }],
+  },
+  {
+    featureType: "poi.park",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#4e4e4e" }],
+  },
+];
+
 const AddressMap = ({
   setAddressLoading,
   pinLocation,
@@ -48,9 +66,10 @@ const AddressMap = ({
         lat: pinLocation?.lat || 5.5697896,
         lng: pinLocation?.lng || -0.2737368,
       },
-      zoom: 17,
+      zoom: 16.5,
       disableDefaultUI: true,
       clickableIcons: false,
+      styles: mapStyles,
     });
 
     // Draggable marker

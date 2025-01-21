@@ -126,7 +126,7 @@ const GoogleMapSearch = (props) => {
               p: "4px 4px",
               display: "flex",
               alignItems: "center",
-              border: "2px solid rgb(68, 218, 245)",
+              border: "2px solid #22CEA6",
             }}
           >
             <InputBase
