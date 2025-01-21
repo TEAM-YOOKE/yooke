@@ -265,24 +265,30 @@ const SetAddress = ({ onClose, open }) => {
                   </Typography>
 
                   <Button
-                    disabled={loading || !address}
                     variant="contained"
+                    sx={{
+                      bgcolor: loading ? "#aaa" : "#22CEA6",
+                      color: "white",
+                      borderRadius: "20px",
+                      fontWeight: "bold",
+                    }}
+                    fullWidth
                     onClick={handleUpdateLocation}
-                    sx={{ borderRadius: "20px", height: "100%" }}
+                    disabled={loading || !address}
+                    size="large"
                   >
                     {loading ? "Loading..." : "Set Location"}
                   </Button>
-                  <IconButton onClick={goToCurrentLocation}>
-                    <GpsFixedIcon
-                      color="info"
-                      fontSize="large"
-                      sx={{
-                        position: "absolute",
-                        z: 99999,
-                        right: 2,
-                        bottom: 90,
-                      }}
-                    />
+                  <IconButton
+                    sx={{
+                      position: "absolute",
+                      z: 99999,
+                      right: 2,
+                      bottom: 90,
+                    }}
+                    onClick={goToCurrentLocation}
+                  >
+                    <GpsFixedIcon color="info" fontSize="large" />
                   </IconButton>
                 </AppBar>
               </Box>
