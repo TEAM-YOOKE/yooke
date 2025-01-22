@@ -7,6 +7,8 @@ import useCurrentUserDoc from "../hooks/currentUserDoc";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebase-config";
 import useCurrentCarOwnerDoc from "../hooks/currentCarOwnerDoc";
+import CarOwnerNav from "../components/navbars/CarOwnerNav";
+import PassengerCard from "../components/cards/PassengerCard";
 
 const ConnectionsCarOwner = () => {
   // const { connections, currentUser } = useAuth();
@@ -22,6 +24,7 @@ const ConnectionsCarOwner = () => {
     rideData,
     rideDataLoading,
   } = useCurrentCarOwnerDoc();
+
   console.log("current user-->", currentUser);
   console.log("ride data-->", rideData);
 
@@ -30,16 +33,20 @@ const ConnectionsCarOwner = () => {
       <h1
         className="h2"
         style={{
-          paddingTop: "47px",
           textAlign: "center",
-          paddingBottom: "20px",
+          padding: "20px 0",
         }}
       >
         {language.connectionsCarOwner.title}
       </h1>
-      - Car details - Leave time - Set off point - Stop Points - Destination
-      point - passengers - start and end ride buttons (conditionally shown)
-      <div style={{ height: "16px" }} />
+
+      <CarOwnerNav />
+
+      <Box>
+        {rideData?.passengers.map((passenger, index) => {
+          return <PassengerCard passenger={passenger} rideData={rideData} />;
+        })}
+      </Box>
     </Container>
   );
 };

@@ -1,21 +1,26 @@
 import React, { useState, useEffect, useRef } from "react";
 import Modal from "@mui/material/Modal";
 import Box from "@mui/material/Box";
+
 import {
   AppBar,
+  Card,
   CircularProgress,
   Icon,
   IconButton,
   Typography,
   Zoom,
 } from "@mui/material";
-
+import Grid from "@mui/material/Grid2";
 import { Wrapper, Status } from "@googlemaps/react-wrapper";
 // import OrderTrackingMap from "../OrderTrackingMap";
 import CloseIcon from "@mui/icons-material/Close";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
 import PhoneIcon from "@mui/icons-material/Phone";
+import ToysIcon from "@mui/icons-material/Toys";
 import CircularProgressLoading from "../components/feedbacks/CircularProgressLoading";
 import RideTrackingMap from "../components/inputs/RideTrackingMap";
+import useCurrentUserDoc from "../hooks/currentUserDoc";
 const style = {
   position: "absolute",
   bottom: 0,
@@ -48,6 +53,12 @@ var render = function (status) {
 };
 
 const RideDetails = (props) => {
+  const {
+    currentUserDoc: currentUser,
+    currentUserDocLoading,
+    rideData,
+    rideDataLoading,
+  } = useCurrentUserDoc();
   const [loading, setLoading] = useState(false);
   const [estimatedTime, setEstimatedTime] = useState(0);
   const [calculatedDistance, setCalculatedDistance] = useState(0);
@@ -81,23 +92,82 @@ const RideDetails = (props) => {
             }}
           >
             <Box sx={style}>
+              <Card
+                sx={{
+                  position: "fixed",
+                  borderRadius: "20px",
+                  left: "50%",
+                  transform: "translateX(-55%)",
+                  top: "3%",
+                  zIndex: 5,
+                  bgcolor: "#fff",
+                  boxShadow: "0 4px 8px 0 rgba(0, 0, 0, 0.2)",
+                  width: "80%",
+                  padding: "10px",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+
+                    fontSize: "11px",
+                  }}
+                >
+                  {/* First Stop Point */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 2,
+                      borderBottom: "1px solid #E0E0E0", // Border for separation
+                      paddingY: "8px",
+                    }}
+                  >
+                    <ToysIcon fontSize="small" sx={{ color: "#33bdbd" }} />
+                    <Typography fontSize="13px" sx={{ fontWeight: 500 }}>
+                      {rideData?.stopPoints[0]}
+                    </Typography>
+                  </Box>
+
+                  {/* Second Stop Point */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 2,
+                      paddingY: "8px",
+                    }}
+                  >
+                    <LocationOnIcon fontSize="small" sx={{ color: "red" }} />
+                    <Typography fontSize="13px" sx={{ fontWeight: 500 }}>
+                      {
+                        currentUser?.pickUpLocation?.address
+                          ?.structured_formatting?.main_text
+                      }
+                    </Typography>
+                  </Box>
+                </Box>
+              </Card>
+
               <IconButton
                 sx={{
                   position: "fixed",
-                  right: "5%",
-                  top: "3%",
+                  right: "2%",
+                  top: "2%",
                   zIndex: 5,
                   bgcolor: "#fff",
                   boxShadow: "0 4px 8px 0 rgba(0, 0, 0, 0.2)",
                   "&:hover": {
                     boxShadow: "0 8px 16px 0 rgba(0, 0, 0, 0.2)",
                   },
+                  fontSize: "small",
                 }}
                 onClick={() => {
                   props.onClose();
                 }}
               >
-                <CloseIcon sx={{ color: "#000" }} />
+                <CloseIcon sx={{ color: "#000" }} fontSize="small" />
               </IconButton>
               <Wrapper
                 render={render}
@@ -128,33 +198,73 @@ const RideDetails = (props) => {
 
                       width: { md: "60%" },
                       left: { md: "20%" },
-                      borderTopRightRadius: "12px",
-                      borderTopLeftRadius: "12px",
+                      borderTopRightRadius: "20px",
+                      borderTopLeftRadius: "20px",
                     }}
                   >
-                    {estimatedTime && calculatedDistance ? (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 2,
+                        justifyContent: "center",
+                      }}
+                    >
                       <Box
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="space-between"
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 0.5,
+                          justifyContent: "center",
+                          borderBottom: "1px solid #E0E0E0",
+                          pb: 1,
+                        }}
                       >
-                        <Typography variant="body1">
-                          <strong>Estimated Time:</strong> {estimatedTime}
+                        <Typography variant="h6" textAlign="center">
+                          <strong>
+                            {!rideData?.rideStarted
+                              ? "Driver is  heading to your location..."
+                              : "Not Started"}
+                          </strong>
                         </Typography>
-                        {/* <Subtitle title={calculatedDistance} my={0} /> */}
-
-                        <IconButton size="small" color="primary">
-                          <Box display="flex" alignItems="center">
-                            <PhoneIcon />
-                            <Typography variant="body2" fontWeight={500}>
-                              Contact driver
+                        {estimatedTime && calculatedDistance ? (
+                          <Typography variant="body1" textAlign="center">
+                            Estimated Time: <strong>{estimatedTime}</strong>
+                          </Typography>
+                        ) : (
+                          ""
+                        )}{" "}
+                        <Typography variant="body1" textAlign="center">
+                          {rideData?.car?.name} | {rideData?.car?.plate}
+                        </Typography>
+                      </Box>
+                      {/* -------Driver Details-------- */}
+                      <Grid container spacing={2} alignItems="center">
+                        <Grid size={2}>
+                          <Box>picture</Box>
+                        </Grid>
+                        <Grid size={7}>
+                          <Box>
+                            <Typography variant="body1">
+                              <strong>{rideData?.driverData?.username}</strong>
+                            </Typography>
+                            <Typography variant="body2" fontSize="11px">
+                              {rideData?.driverData?.whatsappNumber}
                             </Typography>
                           </Box>
-                        </IconButton>
-                      </Box>
-                    ) : (
-                      ""
-                    )}
+                        </Grid>
+                        <Grid size={2}>
+                          <Box>
+                            <IconButton sx={{ border: "1px solid #33bdbd" }}>
+                              <PhoneIcon
+                                sx={{ color: "#33bdbd" }}
+                                fontSize="small"
+                              />
+                            </IconButton>
+                          </Box>
+                        </Grid>
+                      </Grid>
+                    </Box>
                   </AppBar>
                 </Box>
                 {loading && <CircularProgressLoading />}

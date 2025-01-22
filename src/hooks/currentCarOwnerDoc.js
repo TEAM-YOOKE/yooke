@@ -43,7 +43,26 @@ const useCurrentCarOwnerDoc = () => {
 
       if (rides.length > 0) {
         const [firstRide] = rides;
-        setRideData(firstRide);
+
+        console.log("FirstRide", firstRide);
+
+        // Fetch passenger details
+        const passengerIds = firstRide.passengers || [];
+        const passengerPromises = passengerIds.map(async (id) => {
+          const passengerDoc = await getDocs(query(collection(db, "accounts")));
+          console.log("passengers doc:", passengerDoc);
+          return passengerDoc.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }))[0]; // Assuming unique IDs, take the first match
+        });
+        const passengerList = await Promise.all(passengerPromises);
+        setRideData({ ...firstRide, passengers: passengerList });
+        console.log("Ride data with passengers -->", {
+          ...firstRide,
+          passengers: passengerList,
+        });
+
         console.log("Ride data -->", firstRide);
         return firstRide;
       } else {

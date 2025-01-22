@@ -48,7 +48,11 @@ const useCurrentUserDoc = () => {
             }
           : null;
 
-        const rideDetails = { ...ride, car: carData };
+        const driverData = driverSnapshot.exists()
+          ? { ...driverSnapshot.data() }
+          : null;
+
+        const rideDetails = { ...ride, car: carData, driverData };
         setRideData(rideDetails);
         return rideDetails;
       }
