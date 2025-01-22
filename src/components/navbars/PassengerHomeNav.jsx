@@ -378,26 +378,7 @@ const PassengerHomeNav = () => {
                       fontWeight={"bold"}
                       fontSize={"13px"}
                     >
-                      {/* {currentUser?.leaveTime
-                        ? new Date(currentUser.leaveTime).toLocaleTimeString(
-                            "en-US",
-                            {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            }
-                          )
-                        : "Not set"}{" "}
-                      -{" "}
-                      {currentUser?.leaveTime
-                        ? new Date(currentUser.leaveTime).toLocaleTimeString(
-                            "en-US",
-                            {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            }
-                          )
-                        : "Not set"} */}
-                      {arrivalTime}
+                      {arrivalTime} (EST)
                     </Typography>
                   </Box>
                 </Grid>

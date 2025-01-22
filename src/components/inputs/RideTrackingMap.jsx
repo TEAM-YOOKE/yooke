@@ -1,7 +1,23 @@
 import { Box } from "@mui/material";
 import React, { useEffect, useRef } from "react";
 import useCurrentUserDoc from "../../hooks/currentUserDoc";
-
+const mapStyles = [
+  {
+    featureType: "poi",
+    elementType: "labels.icon",
+    stylers: [{ visibility: "off" }],
+  },
+  {
+    featureType: "poi",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#4e4e4e" }],
+  },
+  {
+    featureType: "poi.park",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#4e4e4e" }],
+  },
+];
 const RideTrackingMap = (props) => {
   const mapRef = useRef(null);
 
@@ -12,23 +28,7 @@ const RideTrackingMap = (props) => {
     rideDataLoading,
   } = useCurrentUserDoc();
 
-  const mapStyles = [
-    {
-      featureType: "poi",
-      elementType: "labels.icon",
-      stylers: [{ visibility: "off" }],
-    },
-    {
-      featureType: "poi",
-      elementType: "labels.text.fill",
-      stylers: [{ color: "#4e4e4e" }],
-    },
-    {
-      featureType: "poi.park",
-      elementType: "labels.text.fill",
-      stylers: [{ color: "#4e4e4e" }],
-    },
-  ];
+  console.log("current user", rideData);
 
   const loadMapDetails = (driverLoc, passengerLoc) => {
     const directionsService = new window.google.maps.DirectionsService();
@@ -96,8 +96,10 @@ const RideTrackingMap = (props) => {
 
   const setLocations = () => {
     const geocoder = new window.google.maps.Geocoder();
-    const driverAddress = "Kaneshie Maket";
-    const passengerAddress = "Mimosa Hospital";
+    const driverAddress = rideData?.stopPoints[0];
+    const passengerAddress =
+      currentUser?.pickUpLocation?.address?.description ||
+      currentUser?.pickUpLocation;
 
     const geocodeAddress = (address) =>
       new Promise((resolve, reject) => {
@@ -132,7 +134,7 @@ const RideTrackingMap = (props) => {
     } else {
       console.error("Google Maps API not loaded.");
     }
-  }, []);
+  }, [rideData]);
 
   return (
     <Box ref={mapRef} id="map" style={{ width: "100%", height: "100%" }} />
