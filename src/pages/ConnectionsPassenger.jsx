@@ -16,6 +16,8 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 import { LanguageContext } from "../helpers/LanguageContext";
 import PassengerConnectionsNav from "../components/navbars/PassengerConnectionsNav";
 import useCurrentUserDoc from "../hooks/currentUserDoc";
+import GroupsIcon from "@mui/icons-material/Groups";
+import BadgeIcon from "@mui/icons-material/Badge";
 
 const ConnectionsPassenger = () => {
   const { language } = useContext(LanguageContext);
@@ -95,8 +97,8 @@ const ConnectionsPassenger = () => {
                 ))}
               </Box>
               <Typography variant="body1" sx={{ mt: 1 }}>
-                <strong>Seats:</strong> {rideData.driverData.slots}/
-                {rideData.passengers.length}
+                <strong>Seats:</strong>
+                {rideData.passengers.length}/{rideData.driverData.slots}
               </Typography>
               {/* Car Images */}
               <Box
@@ -167,6 +169,55 @@ const ConnectionsPassenger = () => {
                 >
                   <PhoneIcon color="primary" />
                 </IconButton>
+              </Box>
+            </CardContent>
+          </Card>
+          <Card sx={{ mb: 4, p: 2, borderRadius: "12px", boxShadow: 3 }}>
+            <CardContent>
+              <Typography
+                variant="h5"
+                sx={{
+                  mb: 2,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                }}
+              >
+                <GroupsIcon color="secondary" /> Passengers
+              </Typography>
+              <Box display="flex" flexDirection="column" gap={4}>
+                {rideData.passengers.map((passenger, index) => {
+                  return (
+                    <Box key={index} borderBottom="1px solid #E0E0E0">
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          mb: 1,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 2,
+                        }}
+                      >
+                        <BadgeIcon sx={{ color: "rgb(117, 113, 113)" }} />
+                        {passenger.username}
+                      </Typography>
+
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          mb: 1,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 2,
+                        }}
+                      >
+                        <LocationOnIcon sx={{ color: "rgb(117, 113, 113)" }} />
+
+                        {passenger.pickUpLocation.address.description}
+                      </Typography>
+                    </Box>
+                  );
+                })}
               </Box>
             </CardContent>
           </Card>
