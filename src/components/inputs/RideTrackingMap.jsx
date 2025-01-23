@@ -56,7 +56,8 @@ const RideTrackingMap = (props) => {
     new window.google.maps.Marker({
       position: driverLoc,
       icon: {
-        url: "/pin.png",
+        url: "/car-location.png",
+
         scaledSize: new window.google.maps.Size(40, 40),
       },
       map,
@@ -66,8 +67,8 @@ const RideTrackingMap = (props) => {
     new window.google.maps.Marker({
       position: passengerLoc,
       icon: {
-        url: "/pin.png",
-        scaledSize: new window.google.maps.Size(50, 50),
+        url: "/pin2.png",
+        // scaledSize: new window.google.maps.Size(50, 50),
       },
       map,
     });

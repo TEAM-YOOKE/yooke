@@ -4,10 +4,12 @@ import Box from "@mui/material/Box";
 
 import {
   AppBar,
+  Avatar,
   Card,
   CircularProgress,
   Icon,
   IconButton,
+  Toolbar,
   Typography,
   Zoom,
 } from "@mui/material";
@@ -16,6 +18,7 @@ import { Wrapper, Status } from "@googlemaps/react-wrapper";
 // import OrderTrackingMap from "../OrderTrackingMap";
 import CloseIcon from "@mui/icons-material/Close";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
+import PersonIcon from "@mui/icons-material/Person";
 import PhoneIcon from "@mui/icons-material/Phone";
 import ToysIcon from "@mui/icons-material/Toys";
 import CircularProgressLoading from "../components/feedbacks/CircularProgressLoading";
@@ -186,89 +189,141 @@ const RideDetails = (props) => {
                   setEstimatedTime={setEstimatedTime}
                   setCalculatedDistance={setCalculatedDistance}
                 />
-                <Box borderTopRightRadius="12px" borderTopLeftRadius="12px">
-                  <AppBar
-                    position="fixed"
-                    color="inherit"
-                    sx={{
-                      boxShadow: "4px 4px 8px 5px rgba(0, 0, 0, 0.2)",
-                      top: "auto",
-                      bottom: 0,
-                      p: 2,
 
-                      width: { md: "60%" },
-                      left: { md: "20%" },
-                      borderTopRightRadius: "20px",
-                      borderTopLeftRadius: "20px",
+                {loading && <CircularProgressLoading />}
+              </Wrapper>
+              <Box borderTopRightRadius="12px" borderTopLeftRadius="12px">
+                <AppBar
+                  position="fixed"
+                  color="inherit"
+                  sx={{
+                    boxShadow: "4px 4px 8px 5px rgba(0, 0, 0, 0.2)",
+                    top: "auto",
+                    bottom: 0,
+                    p: 2,
+
+                    width: { md: "60%" },
+                    left: { md: "20%" },
+                    borderTopRightRadius: "20px",
+                    borderTopLeftRadius: "20px",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 2,
+                      justifyContent: "center",
                     }}
                   >
                     <Box
                       sx={{
                         display: "flex",
                         flexDirection: "column",
-                        gap: 2,
+                        gap: 0.5,
                         justifyContent: "center",
+                        borderBottom: "1px solid #E0E0E0",
+                        pb: 1,
                       }}
                     >
-                      <Box
-                        sx={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: 0.5,
-                          justifyContent: "center",
-                          borderBottom: "1px solid #E0E0E0",
-                          pb: 1,
-                        }}
-                      >
-                        <Typography variant="h6" textAlign="center">
-                          <strong>
-                            {!rideData?.rideStarted
-                              ? "Driver is  heading to your location..."
-                              : "Not Started"}
-                          </strong>
-                        </Typography>
-                        {estimatedTime && calculatedDistance ? (
-                          <Typography variant="body1" textAlign="center">
-                            Estimated Time: <strong>{estimatedTime}</strong>
-                          </Typography>
-                        ) : (
-                          ""
-                        )}{" "}
+                      <Typography variant="h6" textAlign="center">
+                        <strong>
+                          {!rideData?.rideStarted
+                            ? "Driver is  heading to your location..."
+                            : "Not Started"}
+                        </strong>
+                      </Typography>
+                      {estimatedTime && calculatedDistance ? (
                         <Typography variant="body1" textAlign="center">
-                          {rideData?.car?.name} | {rideData?.car?.plate}
+                          Estimated Time: <strong>{estimatedTime}</strong>
                         </Typography>
-                      </Box>
-                      {/* -------Driver Details-------- */}
-                      <Grid container spacing={2} alignItems="center">
-                        <Grid size={2}>
-                          <Box>picture</Box>
-                        </Grid>
-                        <Grid size={7}>
-                          <Box>
-                            <Typography variant="body1">
-                              <strong>{rideData?.driverData?.username}</strong>
-                            </Typography>
-                            <Typography variant="body2" fontSize="11px">
-                              {rideData?.driverData?.whatsappNumber}
-                            </Typography>
-                          </Box>
-                        </Grid>
-                        <Grid size={2}>
-                          <Box>
-                            <IconButton sx={{ border: "1px solid #33bdbd" }}>
-                              <PhoneIcon
-                                sx={{ color: "#33bdbd" }}
-                                fontSize="small"
-                              />
-                            </IconButton>
-                          </Box>
-                        </Grid>
-                      </Grid>
+                      ) : (
+                        ""
+                      )}{" "}
+                      <Typography variant="body1" textAlign="center">
+                        {rideData?.car?.name} | {rideData?.car?.plate}
+                      </Typography>
                     </Box>
-                  </AppBar>
-                </Box>
-                {loading && <CircularProgressLoading />}
-              </Wrapper>
+                    {/* -------Driver Details-------- */}
+                    <Grid container spacing={2} alignItems="center">
+                      {/* Driver's Image or Avatar */}
+                      <Grid size={3}>
+                        <Box
+                          display="flex"
+                          justifyContent="center"
+                          alignItems="center"
+                        >
+                          {rideData?.driverData?.profilePicture ? (
+                            <Avatar
+                              src={rideData.driverData.profilePicture}
+                              alt={rideData.driverData.username}
+                              sx={{ width: 50, height: 50 }}
+                            />
+                          ) : (
+                            <Avatar
+                              sx={{
+                                bgcolor: "#e0e0e0",
+                                width: 50,
+                                height: 50,
+                              }}
+                            >
+                              <PersonIcon fontSize="large" />
+                            </Avatar>
+                          )}
+                        </Box>
+                      </Grid>
+
+                      {/* Driver's Details */}
+                      <Grid size={7}>
+                        <Box>
+                          <Typography variant="body1">
+                            <strong>
+                              {rideData?.driverData?.username ||
+                                "Unknown Driver"}
+                            </strong>
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            fontSize="11px"
+                            color="text.secondary"
+                          >
+                            {rideData?.driverData?.whatsappNumber ||
+                              "No contact info"}
+                          </Typography>
+                        </Box>
+                      </Grid>
+
+                      {/* Call Button */}
+                      <Grid size={2}>
+                        <Box
+                          display="flex"
+                          justifyContent="center"
+                          alignItems="center"
+                        >
+                          <IconButton
+                            sx={{
+                              border: "1px solid #22CEA6",
+                              padding: "5px",
+                            }}
+                            onClick={() =>
+                              rideData?.driverData?.whatsappNumber &&
+                              window.open(
+                                `tel:${rideData.driverData.whatsappNumber}`,
+                                "_self"
+                              )
+                            }
+                          >
+                            <PhoneIcon
+                              sx={{ color: "#22CEA6" }}
+                              fontSize="small"
+                            />
+                          </IconButton>
+                        </Box>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                </AppBar>
+              </Box>
             </Box>
           </Box>
         </Zoom>
