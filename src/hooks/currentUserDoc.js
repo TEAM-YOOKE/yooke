@@ -1,7 +1,14 @@
 import useSWR from "swr";
 import { fetchFirestoreCollection } from "../services/firestoreConfig";
 import { useAuth } from "../helpers/GeneralContext";
-import { doc, getDoc } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  collection,
+  where,
+} from "firebase/firestore";
 import { db } from "../firebase-config";
 import { useEffect, useState } from "react";
 
@@ -52,7 +59,23 @@ const useCurrentUserDoc = () => {
           ? { ...driverSnapshot.data() }
           : null;
 
-        const rideDetails = { ...ride, car: carData, driverData };
+        // Fetch passenger details
+        const passengerIds = ride.passengers || [];
+        const passengerPromises = passengerIds.map(async (id) => {
+          const passengerDocRef = doc(db, "accounts", id);
+
+          const passengerSnapshot = await getDoc(passengerDocRef);
+          if (passengerSnapshot.exists()) {
+            return passengerSnapshot.data();
+          } else return null;
+        });
+        const passengerList = await Promise.all(passengerPromises);
+        const rideDetails = {
+          ...ride,
+          car: carData,
+          driverData,
+          passengers: passengerList,
+        };
         setRideData(rideDetails);
         return rideDetails;
       }
