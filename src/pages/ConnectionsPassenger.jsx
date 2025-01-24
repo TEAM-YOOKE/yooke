@@ -7,9 +7,17 @@ import {
   CardContent,
   CardMedia,
   IconButton,
+  Step,
+  StepLabel,
+  Stepper,
+  StepConnector,
+  Avatar,
 } from "@mui/material";
+import Grid from "@mui/material/Grid2";
+import { styled } from "@mui/system";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import PhoneIcon from "@mui/icons-material/Phone";
+import PersonIcon from "@mui/icons-material/Person";
 import BusinessIcon from "@mui/icons-material/Business";
 import ScheduleIcon from "@mui/icons-material/Schedule";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
@@ -18,6 +26,26 @@ import PassengerConnectionsNav from "../components/navbars/PassengerConnectionsN
 import useCurrentUserDoc from "../hooks/currentUserDoc";
 import GroupsIcon from "@mui/icons-material/Groups";
 import BadgeIcon from "@mui/icons-material/Badge";
+import AirlineSeatReclineNormalIcon from "@mui/icons-material/AirlineSeatReclineNormal";
+import ToysIcon from "@mui/icons-material/Toys";
+// Custom Step Connector styling
+const CustomStepConnector = styled(StepConnector)(() => ({
+  "& .MuiStepConnector-line": {
+    borderColor: "#33bdbd",
+    marginTop: "-8px",
+  },
+}));
+const CustomStepIcon = () => (
+  <Box
+    sx={{
+      width: 7,
+      height: 7,
+      borderRadius: "50%",
+      bgcolor: "#33bdbd",
+      mb: 1,
+    }}
+  />
+);
 
 const ConnectionsPassenger = () => {
   const { language } = useContext(LanguageContext);
@@ -36,12 +64,12 @@ const ConnectionsPassenger = () => {
       <Typography
         variant="h4"
         textAlign="center"
-        sx={{ paddingTop: "47px", paddingBottom: "20px", fontWeight: "bold" }}
+        sx={{ paddingY: 2, fontWeight: "bold" }}
       >
         {language.connectionsPassenger.title}
       </Typography>
 
-      <Box>
+      <Box mb={4}>
         <PassengerConnectionsNav />
       </Box>
 
@@ -62,156 +90,237 @@ const ConnectionsPassenger = () => {
       ) : (
         <Box>
           {/* Car Details Card */}
-          <Card sx={{ mb: 4, p: 2, borderRadius: "12px", boxShadow: 3 }}>
+          <Card sx={{ mb: 3, p: 2, borderRadius: "12px", boxShadow: 3 }}>
             <CardContent>
               <Typography
-                variant="h5"
+                variant="body1"
                 sx={{
-                  mb: 2,
                   display: "flex",
                   alignItems: "center",
                   gap: 1,
+                  color: "#535353",
                 }}
               >
-                <DirectionsCarIcon color="primary" /> Car Details
+                <ToysIcon color="secondary" />
               </Typography>
-              <Typography variant="body1" sx={{ mb: 1 }}>
-                <strong>Model:</strong> {rideData.car.name}
-              </Typography>
-              <Typography variant="body1" sx={{ mb: 1 }}>
-                <strong>No. Plate:</strong> {rideData.car.plate}
-              </Typography>
-              <Box>
-                <Typography variant="body1" sx={{ mb: 1 }}>
-                  <strong>Stop Points:</strong>
-                </Typography>
-                {rideData.stopPoints.map((point, index) => (
-                  <Typography
-                    key={index}
-                    variant="body2"
-                    sx={{ ml: 2, opacity: 0.8 }}
-                  >
-                    <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
-                    {point}
-                  </Typography>
-                ))}
-              </Box>
-              <Typography variant="body1" sx={{ mt: 1 }}>
-                <strong>Seats:</strong>
-                {rideData.passengers.length}/{rideData.driverData.slots}
-              </Typography>
-              {/* Car Images */}
-              <Box
-                sx={{
-                  display: "flex",
-                  gap: 2,
-                  mt: 2,
-                  flexWrap: "wrap",
-                }}
-              >
-                {rideData.driverData.carImages.map((image, index) => (
-                  <CardMedia
-                    key={index}
-                    component="img"
-                    src={image}
-                    alt={`Car image ${index + 1}`}
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  gap={2}
+                >
+                  <Box display="flex" flexDirection="column" gap={1}>
+                    <Typography variant="body2">
+                      <strong>
+                        {rideData.car.name} ({rideData.car.plate})
+                      </strong>
+                    </Typography>
+                    <Typography variant="body2">
+                      Seats:
+                      <strong>
+                        {" "}
+                        {rideData.passengers.length}/{rideData.driverData.slots}
+                      </strong>
+                    </Typography>{" "}
+                    <Typography variant="body2">
+                      Leave Time:
+                      <strong>
+                        {" "}
+                        {new Date(rideData.leaveTime).toLocaleTimeString(
+                          "en-US",
+                          {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          }
+                        )}
+                      </strong>
+                    </Typography>{" "}
+                  </Box>
+                  <Box
                     sx={{
-                      width: "80px",
-                      height: "80px",
-                      borderRadius: "8px",
-                      boxShadow: 2,
+                      display: "flex",
+                      gap: 2,
+                      mt: 2,
+                      flexWrap: "wrap",
                     }}
-                  />
-                ))}
+                  >
+                    <CardMedia
+                      component="img"
+                      src={rideData.driverData.carImages[0]}
+                      alt="Car image"
+                      sx={{
+                        width: "150px",
+                        height: "80px",
+                        borderRadius: "8px",
+                        boxShadow: 2,
+                      }}
+                    />
+                  </Box>
+                </Box>
+
+                <Stepper
+                  alternativeLabel
+                  connector={<CustomStepConnector />}
+                  sx={{ padding: 0 }}
+                >
+                  {rideData.stopPoints.map((point, index) => (
+                    <Step key={index} sx={{ alignItems: "left" }}>
+                      <StepLabel StepIconComponent={CustomStepIcon}></StepLabel>
+                      <Typography textAlign="center" fontSize="13px">
+                        {point}
+                      </Typography>
+                    </Step>
+                  ))}
+                </Stepper>
               </Box>
+              {/* Car Images */}
             </CardContent>
           </Card>
 
           {/* Driver Details Card */}
-          <Card sx={{ mb: 4, p: 2, borderRadius: "12px", boxShadow: 3 }}>
+          <Card sx={{ mb: 3, p: 2, borderRadius: "12px", boxShadow: 3 }}>
             <CardContent>
               <Typography
-                variant="h5"
+                variant="body1"
                 sx={{
                   mb: 2,
                   display: "flex",
                   alignItems: "center",
                   gap: 1,
+                  color: "#535353",
                 }}
               >
-                <BusinessIcon color="primary" /> Driver Details
+                <AirlineSeatReclineNormalIcon color="secondary" />{" "}
+                {/* <strong>Driver</strong> */}
               </Typography>
-              <Typography variant="body1" sx={{ mb: 1 }}>
-                <strong>Name:</strong> {rideData.driverData.username}
-              </Typography>
-              <Typography variant="body1" sx={{ mb: 1 }}>
-                <strong>Company:</strong> {rideData.driverData.company}
-              </Typography>
-              <Typography variant="body1" sx={{ mb: 1 }}>
-                <strong>WhatsApp:</strong> {rideData.driverData.whatsappNumber}
-              </Typography>
-              <Typography variant="body1" sx={{ mb: 1 }}>
-                <strong>Leave Time:</strong>{" "}
-                <ScheduleIcon fontSize="small" sx={{ mr: 1 }} />
-                {new Date(rideData.driverData.leaveTime).toLocaleTimeString(
-                  "en-US",
-                  { hour: "2-digit", minute: "2-digit" }
-                )}
-              </Typography>
-              <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-                <IconButton
-                  href={`tel:${rideData.driverData.whatsappNumber}`}
-                  sx={{
-                    border: "1px solid #33bdbd",
-                    borderRadius: "50%",
-                    p: 1,
-                  }}
-                >
-                  <PhoneIcon color="primary" />
-                </IconButton>
-              </Box>
+              <Grid container spacing={2} alignItems="center">
+                {/* Driver's Image or Avatar */}
+                <Grid size={3}>
+                  <Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                  >
+                    {rideData?.driverData?.profilePicture ? (
+                      <Avatar
+                        src={rideData.driverData.profilePicture}
+                        alt={rideData.driverData.username}
+                        sx={{ width: 50, height: 50 }}
+                      />
+                    ) : (
+                      <Avatar
+                        sx={{
+                          bgcolor: "#e0e0e0",
+                          width: 50,
+                          height: 50,
+                        }}
+                      >
+                        <PersonIcon fontSize="large" />
+                      </Avatar>
+                    )}
+                  </Box>
+                </Grid>
+
+                {/* Driver's Details */}
+                <Grid size={7}>
+                  <Box>
+                    <Typography variant="body2">
+                      <strong>
+                        {rideData?.driverData?.username || "Unknown Driver"}
+                      </strong>
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      fontSize="11px"
+                      color="text.secondary"
+                    >
+                      ({rideData?.driverData?.company})
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      fontSize="11px"
+                      color="text.secondary"
+                    >
+                      {rideData?.driverData?.whatsappNumber ||
+                        "No contact info"}
+                    </Typography>
+                  </Box>
+                </Grid>
+
+                {/* Call Button */}
+                <Grid size={2}>
+                  <Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                  >
+                    <IconButton
+                      sx={{
+                        border: "1px solid #22CEA6",
+                        padding: "5px",
+                      }}
+                      onClick={() =>
+                        rideData?.driverData?.whatsappNumber &&
+                        window.open(
+                          `tel:${rideData.driverData.whatsappNumber}`,
+                          "_self"
+                        )
+                      }
+                    >
+                      <PhoneIcon sx={{ color: "#22CEA6" }} fontSize="small" />
+                    </IconButton>
+                  </Box>
+                </Grid>
+              </Grid>
             </CardContent>
           </Card>
-          <Card sx={{ mb: 4, p: 2, borderRadius: "12px", boxShadow: 3 }}>
+          <Card sx={{ mb: 3, p: 2, borderRadius: "12px", boxShadow: 3 }}>
             <CardContent>
               <Typography
-                variant="h5"
+                variant="body1"
                 sx={{
                   mb: 2,
                   display: "flex",
                   alignItems: "center",
+                  color: "#535353",
                   gap: 1,
                 }}
               >
-                <GroupsIcon color="secondary" /> Passengers
+                <GroupsIcon color="secondary" />
+                {/* <strong>Passengers</strong> */}
               </Typography>
               <Box display="flex" flexDirection="column" gap={4}>
                 {rideData.passengers.map((passenger, index) => {
                   return (
                     <Box key={index} borderBottom="1px solid #E0E0E0">
                       <Typography
-                        variant="body1"
+                        variant="body2"
                         sx={{
-                          mb: 1,
                           display: "flex",
                           alignItems: "center",
-                          gap: 2,
+                          gap: 1,
                         }}
                       >
-                        <BadgeIcon sx={{ color: "rgb(117, 113, 113)" }} />
-                        {passenger.username}
+                        <BadgeIcon
+                          fontSize="11px"
+                          sx={{ color: "rgb(117, 113, 113)" }}
+                        />
+                        <strong>{passenger.username}</strong>
                       </Typography>
 
                       <Typography
-                        variant="body1"
+                        variant="body2"
                         sx={{
-                          mb: 1,
                           display: "flex",
                           alignItems: "center",
-                          gap: 2,
+                          gap: 1,
                         }}
                       >
-                        <LocationOnIcon sx={{ color: "rgb(117, 113, 113)" }} />
+                        <LocationOnIcon
+                          fontSize="11px"
+                          sx={{ color: "rgb(117, 113, 113)" }}
+                        />
 
                         {passenger.pickUpLocation.address.description}
                       </Typography>
