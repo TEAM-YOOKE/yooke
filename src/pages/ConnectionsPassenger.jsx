@@ -16,6 +16,7 @@ import {
 import Grid from "@mui/material/Grid2";
 import { styled } from "@mui/system";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import PhoneIcon from "@mui/icons-material/Phone";
 import PersonIcon from "@mui/icons-material/Person";
 import BusinessIcon from "@mui/icons-material/Business";
@@ -58,6 +59,47 @@ const ConnectionsPassenger = () => {
     rideDataLoading,
     refreshRideData,
   } = useCurrentUserDoc();
+
+  console.log("ride data", rideData);
+  const handleOpenWhastApp = () => {
+    let url = "";
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (isMobile) {
+      const isWhatsAppInstalled = /WhatsApp/i.test(navigator.userAgent);
+      if (isWhatsAppInstalled) {
+        url = `whatsapp://send?text=Hello%20Wuda%20Lounge!&phone=+233${rideData?.driverData?.whatsappNumber.slice(
+          -9
+        )}`;
+      } else {
+        const platform = /(android)/i.test(navigator.userAgent)
+          ? "android"
+          : "ios";
+        url = `https://wa.me/?text=Hello%20Wuda%20Lounge!&phone=+233${rideData?.driverData?.whatsappNumber.slice(
+          -9
+        )}&app_absent=1${platform === "android" ? "&fallback_url=" : ""}${
+          platform === "android"
+            ? "market://details?id=com.whatsapp"
+            : "https://apps.apple.com/app/id310633997"
+        }`;
+      }
+    } else {
+      url = `https://web.whatsapp.com/send?phone=+233${rideData?.driverData?.whatsappNumber.slice(
+        -9
+      )}`;
+    }
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      const appUrl = url;
+      // const webUrl = webUrl;
+      const appWindow = window.open(appUrl, "_blank");
+      setTimeout(() => {
+        if (!appWindow || appWindow.closed || appWindow.closed === undefined) {
+          window.location.href = webUrl;
+        }
+      }, 500);
+    } else {
+      window.open(webUrl, "_blank");
+    }
+  };
 
   return (
     <Container>
@@ -237,24 +279,37 @@ const ConnectionsPassenger = () => {
                     >
                       ({rideData?.driverData?.company})
                     </Typography>
-                    <Typography
+                    {/* <Typography
                       variant="body2"
                       fontSize="11px"
                       color="text.secondary"
                     >
                       {rideData?.driverData?.whatsappNumber ||
                         "No contact info"}
-                    </Typography>
+                    </Typography> */}
                   </Box>
                 </Grid>
 
-                {/* Call Button */}
+                {/* Action Buttons */}
                 <Grid size={2}>
                   <Box
                     display="flex"
                     justifyContent="center"
                     alignItems="center"
+                    gap={2}
                   >
+                    <IconButton
+                      sx={{
+                        border: "1px solid #22CEA6",
+                        padding: "5px",
+                      }}
+                      onClick={handleOpenWhastApp}
+                    >
+                      <WhatsAppIcon
+                        sx={{ color: "#22CEA6" }}
+                        fontSize="small"
+                      />
+                    </IconButton>
                     <IconButton
                       sx={{
                         border: "1px solid #22CEA6",
