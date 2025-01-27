@@ -61,43 +61,40 @@ const ConnectionsPassenger = () => {
   } = useCurrentUserDoc();
 
   console.log("ride data", rideData);
-  const handleOpenWhastApp = () => {
+  const handleOpenWhatsApp = () => {
     let url = "";
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const phoneNumber = rideData?.driverData?.whatsappNumber.slice(-9); // Get the last 9 digits of the number
+    const message = encodeURIComponent(
+      `Hey ${rideData.driverData.username}, it's ${currentUser.username} from Yooke!`
+    );
+    console.log(message);
     if (isMobile) {
-      const isWhatsAppInstalled = /WhatsApp/i.test(navigator.userAgent);
-      if (isWhatsAppInstalled) {
-        url = `whatsapp://send?text=Hello%20Wuda%20Lounge!&phone=+233${rideData?.driverData?.whatsappNumber.slice(
-          -9
-        )}`;
-      } else {
-        const platform = /(android)/i.test(navigator.userAgent)
-          ? "android"
-          : "ios";
-        url = `https://wa.me/?text=Hello%20Wuda%20Lounge!&phone=+233${rideData?.driverData?.whatsappNumber.slice(
-          -9
-        )}&app_absent=1${platform === "android" ? "&fallback_url=" : ""}${
-          platform === "android"
-            ? "market://details?id=com.whatsapp"
-            : "https://apps.apple.com/app/id310633997"
-        }`;
-      }
-    } else {
-      url = `https://web.whatsapp.com/send?phone=+233${rideData?.driverData?.whatsappNumber.slice(
-        -9
-      )}`;
-    }
-    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-      const appUrl = url;
-      // const webUrl = webUrl;
-      const appWindow = window.open(appUrl, "_blank");
+      // Check if the platform is Android or iOS
+      const platform = /(android)/i.test(navigator.userAgent)
+        ? "android"
+        : "ios";
+
+      // If WhatsApp is installed
+      url = `whatsapp://send?text=${message}&phone=+233${phoneNumber}`;
+
+      // Handle fallback URLs for app stores if WhatsApp isn't installed
+      const fallbackUrl =
+        platform === "android"
+          ? "https://play.google.com/store/apps/details?id=com.whatsapp"
+          : "https://apps.apple.com/app/id310633997";
+
+      const appWindow = window.open(url, "_blank");
       setTimeout(() => {
         if (!appWindow || appWindow.closed || appWindow.closed === undefined) {
-          window.location.href = webUrl;
+          // Redirect to the app store if WhatsApp is not installed
+          window.location.href = fallbackUrl;
         }
       }, 500);
     } else {
-      window.open(webUrl, "_blank");
+      // For desktop, use WhatsApp Web
+      url = `https://web.whatsapp.com/send?phone=+233${phoneNumber}&text=${message}`;
+      window.open(url, "_blank");
     }
   };
 
@@ -303,7 +300,7 @@ const ConnectionsPassenger = () => {
                         border: "1px solid #22CEA6",
                         padding: "5px",
                       }}
-                      onClick={handleOpenWhastApp}
+                      onClick={handleOpenWhatsApp}
                     >
                       <WhatsAppIcon
                         sx={{ color: "#22CEA6" }}
