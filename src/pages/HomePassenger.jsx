@@ -8,6 +8,7 @@ import {
   Typography,
   Skeleton,
   Button,
+  AlertTitle,
 } from "@mui/material";
 import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { useAuth } from "../helpers/GeneralContext";
@@ -23,6 +24,7 @@ function HomePassenger() {
     refreshRideData,
     rideData,
     currentUserDoc: currentUser,
+    currentUserDocLoading,
   } = useCurrentUserDoc();
   const { rides, ridesLoading, ridesError, refreshRides } =
     useUserLocationRides();
@@ -252,9 +254,34 @@ function HomePassenger() {
   return (
     <Box height="100vh">
       <PassengerHomeNav />
+      <Alert severity="info" sx={{ mt: 2 }}>
+        All payment terms and conditions must be negotiated directly between you
+        and the car owner!
+      </Alert>
       <Box px={2} py={3}>
         {/* Check if the pick-up location is not set */}
-        {!currentUser?.pickUpLocation ? (
+        {ridesLoading || currentUserDocLoading ? (
+          // Show loading skeletons while rides are loading
+          <Box
+            display="flex"
+            flexDirection="column"
+            gap={2}
+            mt={2}
+            justifyContent="center"
+            alignItems="center"
+          >
+            {Array(3)
+              .fill(null)
+              .map((_, index) => (
+                <Skeleton
+                  key={index}
+                  sx={{ width: "100%", borderRadius: 2 }}
+                  variant="rectangular"
+                  height={180}
+                />
+              ))}
+          </Box>
+        ) : !currentUser?.pickUpLocation ? (
           <Box
             sx={{
               textAlign: "center",
@@ -286,27 +313,6 @@ function HomePassenger() {
             >
               Set Location
             </Button>
-          </Box>
-        ) : ridesLoading ? (
-          // Show loading skeletons while rides are loading
-          <Box
-            display="flex"
-            flexDirection="column"
-            gap={2}
-            mt={2}
-            justifyContent="center"
-            alignItems="center"
-          >
-            {Array(3)
-              .fill(null)
-              .map((_, index) => (
-                <Skeleton
-                  key={index}
-                  sx={{ width: "100%", borderRadius: 2 }}
-                  variant="rectangular"
-                  height={180}
-                />
-              ))}
           </Box>
         ) : ridesError ? (
           // Handle error state

@@ -15,7 +15,6 @@ import {
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { Wrapper, Status } from "@googlemaps/react-wrapper";
-// import OrderTrackingMap from "../OrderTrackingMap";
 import CloseIcon from "@mui/icons-material/Close";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import PersonIcon from "@mui/icons-material/Person";
@@ -176,15 +175,6 @@ const RideDetails = (props) => {
                 render={render}
                 apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
               >
-                {/* <OrderTrackingMap
-                  order={props.order}
-                  lat={props.lat}
-                  lng={props.lng}
-                  user={props.user}
-                  selectedBranch={props.selectedBranch}
-                  setEstimatedTime={setEstimatedTime}
-                  setCalculatedDistance={setCalculatedDistance}
-                /> */}
                 <RideTrackingMap
                   setEstimatedTime={setEstimatedTime}
                   setCalculatedDistance={setCalculatedDistance}

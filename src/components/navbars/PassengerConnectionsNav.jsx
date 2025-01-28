@@ -1,9 +1,7 @@
 import React from "react";
 import { Box, Tabs, Tab } from "@mui/material";
 
-const PassengerConnectionsNav = () => {
-  const [value, setValue] = React.useState(0);
-
+const PassengerConnectionsNav = ({ value, setValue }) => {
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
