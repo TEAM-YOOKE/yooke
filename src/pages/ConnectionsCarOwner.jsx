@@ -7,16 +7,12 @@ import useCurrentUserDoc from "../hooks/currentUserDoc";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebase-config";
 import useCurrentCarOwnerDoc from "../hooks/currentCarOwnerDoc";
-import CarOwnerNav from "../components/navbars/CarOwnerNav";
 import PassengerCard from "../components/cards/PassengerCard";
+import CarOwnerConnectionsNav from "../components/navbars/CarOwnerConnectionsNav";
 
 const ConnectionsCarOwner = () => {
-  // const { connections, currentUser } = useAuth();
   const { language } = useContext(LanguageContext);
-
-  // const carOwnerConnections = connections.filter(
-  //   (connection) => currentUser.accountType === "Car owner"
-  // );
+  const [tabValue, setTabValue] = useState(0);
 
   const {
     currentCarOwnerDoc: currentUser,
@@ -40,13 +36,15 @@ const ConnectionsCarOwner = () => {
         {language.connectionsCarOwner.title}
       </h1>
 
-      <CarOwnerNav />
+      <CarOwnerConnectionsNav value={tabValue} setValue={setTabValue} />
 
-      <Box>
-        {rideData?.passengers.map((passenger, index) => {
-          return <PassengerCard passenger={passenger} rideData={rideData} />;
-        })}
-      </Box>
+      {tabValue === 0 ? (
+        <Box>
+          {rideData?.passengers.map((passenger, index) => {
+            return <PassengerCard passenger={passenger} rideData={rideData} />;
+          })}
+        </Box>
+      ) : null}
     </Container>
   );
 };

@@ -23,7 +23,7 @@ function loadScript(src, position, id) {
 
 const autocompleteService = { current: null };
 
-const GoogleMapSearchMultiple = ({ value, setValue }) => {
+const GoogleMapSearchMultiple = ({ value, setValue, disabled }) => {
   const [inputValue, setInputValue] = useState("");
   const [options, setOptions] = useState([]);
   const loaded = React.useRef(false);
@@ -92,6 +92,7 @@ const GoogleMapSearchMultiple = ({ value, setValue }) => {
 
   return (
     <Autocomplete
+      disabled={disabled}
       multiple
       id="google-map-multi"
       fullWidth

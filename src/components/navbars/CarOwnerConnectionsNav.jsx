@@ -1,9 +1,7 @@
 import React from "react";
 import { Box, Tabs, Tab } from "@mui/material";
 
-const CarOwnerNav = () => {
-  const [value, setValue] = React.useState(0);
-
+const CarOwnerConnectionsNav = ({ value, setValue }) => {
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
@@ -25,7 +23,7 @@ const CarOwnerNav = () => {
           },
         }}
       >
-        {["Active", "Past"].map((label, index) => (
+        {["Passengers", "History"].map((label, index) => (
           <Tab
             key={index}
             label={label}
@@ -34,7 +32,7 @@ const CarOwnerNav = () => {
               border: "1px solid #22CEA6",
               marginRight: 2,
               px: 2,
-              fontSize: "11px",
+              fontSize: "13px",
               bgcolor: value === index ? "secondary.main" : "transparent",
               color: value === index ? "#fff !important" : "#22CEA6",
               "&:hover": {
@@ -48,4 +46,4 @@ const CarOwnerNav = () => {
   );
 };
 
-export default CarOwnerNav;
+export default CarOwnerConnectionsNav;

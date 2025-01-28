@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
-import { Box, Alert, Button, Switch } from "@mui/material";
+import { Box, Alert, Button, Switch, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase-config";
@@ -33,6 +33,7 @@ function HomeCarOwner() {
   const [stopPoints, setStopPoints] = useState([]);
   const [changesMade, setChangesMade] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [rideStarted, setRideStarted] = useState(false);
 
   useEffect(() => {
     if (rideData) {
@@ -72,23 +73,51 @@ function HomeCarOwner() {
     setChangesMade(true);
   };
 
-  const handleStopPointsChange = (newValue) => {
-    setStopPoints(newValue);
-    setChangesMade(true);
+  const handleRideStarted = () => {
+    if (
+      window.confirm(
+        "You are about to start the ride. Are you sure you want to continue?"
+      )
+    )
+      setRideStarted(true);
+  };
+  const handleEndRide = () => {
+    if (
+      window.confirm(
+        "You are about to end the ride. Are you sure you want to continue?"
+      )
+    )
+      setRideStarted(false);
   };
 
   return (
     <Box sx={{ padding: "0 24px" }}>
-      <h1
-        className="h2"
-        style={{
-          paddingTop: "47px",
-          textAlign: "left",
-          paddingBottom: "20px",
-        }}
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        py={2}
+        mb={2}
       >
-        {language.homeCarOwner.home}
-      </h1>
+        <Typography variant="h5" sx={{ fontWeight: "bold" }}>
+          {language.homeCarOwner.home}
+        </Typography>
+        <Button
+          disableElevation
+          variant="contained"
+          color={rideStarted ? "error" : "success"}
+          type="button"
+          sx={{
+            height: "47px",
+            textTransform: "none",
+            boxShadow: "none",
+            borderRadius: "20px",
+          }}
+          onClick={rideStarted ? handleEndRide : handleRideStarted}
+        >
+          {rideStarted ? "End Ride" : "Start Ride"}
+        </Button>
+      </Box>
 
       <Box
         sx={{
@@ -100,6 +129,7 @@ function HomeCarOwner() {
         <Box>{language.homeCarOwner.acceptingRideRequests}</Box>
         <Box>
           <Switch
+            disabled={rideStarted}
             checked={acceptingRideRequests}
             onChange={handleAcceptingRideRequestsChange}
             color="secondary"
@@ -109,6 +139,7 @@ function HomeCarOwner() {
 
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <TimePicker
+          disabled={rideStarted}
           sx={{ marginTop: "24px", width: "100%", marginBottom: "16px" }}
           label={language.homeCarOwner.usualLeavingTime}
           value={leaveTime}
@@ -119,6 +150,7 @@ function HomeCarOwner() {
 
       {/* put the google map compoent here for the stop points */}
       <GoogleMapSearchMultiple
+        disabled={rideStarted}
         value={stopPoints}
         setValue={(newPoints) => {
           setStopPoints(newPoints);
@@ -146,7 +178,7 @@ function HomeCarOwner() {
             marginTop: "24px",
           }}
           onClick={handleSaveChanges}
-          disabled={saving}
+          disabled={saving || rideStarted}
         >
           {saving
             ? language.homeCarOwner.savingChanges

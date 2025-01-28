@@ -1,7 +1,14 @@
 import useSWR from "swr";
 import { fetchFirestoreCollection } from "../services/firestoreConfig";
 import { useAuth } from "../helpers/GeneralContext";
-import { collection, query, where, getDocs, doc } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  getDoc,
+  doc,
+} from "firebase/firestore";
 import { db } from "../firebase-config";
 import { useEffect, useState } from "react";
 
@@ -49,12 +56,12 @@ const useCurrentCarOwnerDoc = () => {
         // Fetch passenger details
         const passengerIds = firstRide.passengers || [];
         const passengerPromises = passengerIds.map(async (id) => {
-          const passengerDoc = await getDocs(query(collection(db, "accounts")));
-          console.log("passengers doc:", passengerDoc);
-          return passengerDoc.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          }))[0]; // Assuming unique IDs, take the first match
+          const passengerDocRef = doc(db, "accounts", id);
+
+          const passengerSnapShot = await getDoc(passengerDocRef);
+          if (passengerSnapShot.exists()) {
+            return passengerSnapShot.data();
+          } else return null;
         });
         const passengerList = await Promise.all(passengerPromises);
         setRideData({ ...firstRide, passengers: passengerList });
