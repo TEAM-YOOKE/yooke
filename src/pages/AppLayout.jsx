@@ -16,6 +16,7 @@ import MuiAlert from "@mui/material/Alert";
 import { useAuth } from "../helpers/GeneralContext";
 import ConfettiComponent from "../components/ConfettiComponent";
 import { LanguageContext } from "../helpers/LanguageContext";
+import { Toolbar } from "@mui/material";
 
 function AppLayout() {
   const location = useLocation();
@@ -159,6 +160,10 @@ function AppLayout() {
               "& .Mui-selected, .Mui-selected svg": {
                 color: theme.palette.secondary.main,
               },
+              position: "fixed",
+              bottom: 0,
+              width: "100%",
+              zIndex: 1000,
             }}
           >
             <BottomNavigationAction
@@ -194,6 +199,7 @@ function AppLayout() {
               }}
             />
           </BottomNavigation>
+          <Toolbar />
         </Box>
       )}
     </Box>
