@@ -33,7 +33,6 @@ function HomeCarOwner() {
   const [stopPoints, setStopPoints] = useState([]);
   const [changesMade, setChangesMade] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [rideStarted, setRideStarted] = useState(false);
 
   useEffect(() => {
     if (rideData) {
@@ -75,19 +74,28 @@ function HomeCarOwner() {
 
   const handleRideStarted = () => {
     if (
-      window.confirm(
+      !window.confirm(
         "You are about to start the ride. Are you sure you want to continue?"
       )
     )
-      setRideStarted(true);
+      return;
+    // update the ride data
+    const rideDocRef = doc(db, "rides", rideData.id);
+    updateDoc(rideDocRef, {
+      rideStarted: true,
+    });
   };
   const handleEndRide = () => {
     if (
-      window.confirm(
+      !window.confirm(
         "You are about to end the ride. Are you sure you want to continue?"
       )
     )
-      setRideStarted(false);
+      return;
+    const rideDocRef = doc(db, "rides", rideData.id);
+    updateDoc(rideDocRef, {
+      rideStarted: false,
+    });
   };
 
   return (
@@ -105,7 +113,7 @@ function HomeCarOwner() {
         <Button
           disableElevation
           variant="contained"
-          color={rideStarted ? "error" : "success"}
+          color={rideData?.rideStarted ? "error" : "success"}
           type="button"
           sx={{
             height: "47px",
@@ -113,9 +121,9 @@ function HomeCarOwner() {
             boxShadow: "none",
             borderRadius: "20px",
           }}
-          onClick={rideStarted ? handleEndRide : handleRideStarted}
+          onClick={rideData?.rideStarted ? handleEndRide : handleRideStarted}
         >
-          {rideStarted ? "End Ride" : "Start Ride"}
+          {rideData?.rideStarted ? "End Ride" : "Start Ride"}
         </Button>
       </Box>
 
@@ -129,7 +137,7 @@ function HomeCarOwner() {
         <Box>{language.homeCarOwner.acceptingRideRequests}</Box>
         <Box>
           <Switch
-            disabled={rideStarted}
+            disabled={rideData?.rideStarted}
             checked={acceptingRideRequests}
             onChange={handleAcceptingRideRequestsChange}
             color="secondary"
@@ -139,7 +147,7 @@ function HomeCarOwner() {
 
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <TimePicker
-          disabled={rideStarted}
+          disabled={rideData?.rideStarted}
           sx={{ marginTop: "24px", width: "100%", marginBottom: "16px" }}
           label={language.homeCarOwner.usualLeavingTime}
           value={leaveTime}
@@ -150,7 +158,7 @@ function HomeCarOwner() {
 
       {/* put the google map compoent here for the stop points */}
       <GoogleMapSearchMultiple
-        disabled={rideStarted}
+        disabled={rideData?.rideStarted}
         value={stopPoints}
         setValue={(newPoints) => {
           setStopPoints(newPoints);
@@ -178,7 +186,7 @@ function HomeCarOwner() {
             marginTop: "24px",
           }}
           onClick={handleSaveChanges}
-          disabled={saving || rideStarted}
+          disabled={saving || rideData?.rideStarted}
         >
           {saving
             ? language.homeCarOwner.savingChanges

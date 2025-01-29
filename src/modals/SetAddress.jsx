@@ -65,7 +65,7 @@ var render = function (status) {
 const SetAddress = ({ onClose, open }) => {
   const {
     refreshCurrentUserDoc,
-    refreshRideData,
+    // refreshRideData,
     rideData,
     currentUserDoc: currentUser,
   } = useCurrentUserDoc();
@@ -118,7 +118,7 @@ const SetAddress = ({ onClose, open }) => {
         console.log("location updated");
 
         await refreshCurrentUserDoc();
-        await refreshRideData();
+        // await refreshRideData();
         await refreshRides();
         setSearchValue("");
         onClose();

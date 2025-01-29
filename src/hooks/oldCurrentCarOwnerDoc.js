@@ -8,7 +8,6 @@ import {
   getDocs,
   getDoc,
   doc,
-  onSnapshot,
 } from "firebase/firestore";
 import { db } from "../firebase-config";
 import { useEffect, useState } from "react";
@@ -18,7 +17,6 @@ const useCurrentCarOwnerDoc = () => {
   const [currentUserDoc, setCurrentUserDoc] = useState(null);
   const [rideData, setRideData] = useState(null);
   const [rideDataLoading, setRideDataLoading] = useState(false);
-  const [unsubscribeRide, setUnsubscribeRide] = useState(null);
 
   // Fetch current user document
   const fetchCurrentCarOwnerDoc = async () => {
@@ -38,34 +36,13 @@ const useCurrentCarOwnerDoc = () => {
     }
   };
 
-  // Fetch additional ride details
-  const fetchRideDetails = async (ride) => {
+  // Fetch ride data where current user is the driver
+  const fetchRideData = async (userDoc) => {
     try {
-      // Fetch passenger details
-      const passengerIds = ride.passengers || [];
-      const passengerPromises = passengerIds.map(async (id) => {
-        const passengerDocRef = doc(db, "accounts", id);
-        const passengerSnapshot = await getDoc(passengerDocRef);
-        return passengerSnapshot.exists() ? passengerSnapshot.data() : null;
-      });
-
-      const passengerList = await Promise.all(passengerPromises);
-
-      return { ...ride, passengers: passengerList };
-    } catch (error) {
-      console.error("Error fetching ride details:", error);
-      return { ...ride, passengers: [] };
-    }
-  };
-
-  // Set up real-time listener for ride data
-  const setupRideListener = (userDoc) => {
-    if (!userDoc) return;
-
-    const rideCollection = collection(db, "rides");
-    const q = query(rideCollection, where("driverId", "==", userDoc.id));
-
-    const unsubscribe = onSnapshot(q, async (querySnapshot) => {
+      setRideDataLoading(true);
+      const rideCollection = collection(db, "rides");
+      const q = query(rideCollection, where("driverId", "==", userDoc.id));
+      const querySnapshot = await getDocs(q);
       const rides = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
@@ -73,14 +50,38 @@ const useCurrentCarOwnerDoc = () => {
 
       if (rides.length > 0) {
         const [firstRide] = rides;
-        const rideDetails = await fetchRideDetails(firstRide);
-        setRideData(rideDetails);
-      } else {
-        setRideData(null);
-      }
-    });
 
-    setUnsubscribeRide(() => unsubscribe);
+        console.log("FirstRide", firstRide);
+
+        // Fetch passenger details
+        const passengerIds = firstRide.passengers || [];
+        const passengerPromises = passengerIds.map(async (id) => {
+          const passengerDocRef = doc(db, "accounts", id);
+
+          const passengerSnapShot = await getDoc(passengerDocRef);
+          if (passengerSnapShot.exists()) {
+            return passengerSnapShot.data();
+          } else return null;
+        });
+        const passengerList = await Promise.all(passengerPromises);
+        setRideData({ ...firstRide, passengers: passengerList });
+        console.log("Ride data with passengers -->", {
+          ...firstRide,
+          passengers: passengerList,
+        });
+
+        console.log("Ride data -->", firstRide);
+        return firstRide;
+      } else {
+        console.warn("No rides found for the current user as a driver.");
+        return null;
+      }
+    } catch (error) {
+      console.error("Error fetching ride data:", error);
+      return null;
+    } finally {
+      setRideDataLoading(false);
+    }
   };
 
   // SWR for user document
@@ -91,16 +92,12 @@ const useCurrentCarOwnerDoc = () => {
     mutate: refreshUserDoc,
   } = useSWR(currentUser ? "currentUserDoc" : null, fetchCurrentCarOwnerDoc);
 
-  // Listen for real-time ride updates when userDoc changes
+  // Fetch ride data whenever userDoc changes
   useEffect(() => {
     if (userDoc) {
       console.log("Fetched userDoc:", userDoc);
-      setupRideListener(userDoc);
+      fetchRideData(userDoc);
     }
-
-    return () => {
-      if (unsubscribeRide) unsubscribeRide();
-    };
   }, [userDoc]);
 
   return {
@@ -110,7 +107,7 @@ const useCurrentCarOwnerDoc = () => {
     currentCarOwnerDocError: userError,
     rideData,
     rideDataLoading,
-    refreshRideData: () => setupRideListener(userDoc),
+    refreshRideData: () => fetchRideData(userDoc),
   };
 };
 

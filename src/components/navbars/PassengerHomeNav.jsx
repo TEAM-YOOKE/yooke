@@ -12,6 +12,7 @@ import {
   Alert,
   IconButton,
   Toolbar,
+  Skeleton,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -37,6 +38,7 @@ import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import useCurrentUserDoc from "../../hooks/currentUserDoc";
 import SetAddress from "../../modals/SetAddress";
+import EastIcon from "@mui/icons-material/East";
 import EditIcon from "@mui/icons-material/Edit";
 import RideDetails from "../../modals/RideDetails";
 
@@ -70,7 +72,7 @@ const PassengerHomeNav = () => {
     refreshCurrentUserDoc,
     rideData,
     rideDataLoading,
-    refreshRideData,
+    // refreshRideData,
   } = useCurrentUserDoc();
 
   useEffect(() => {
@@ -271,39 +273,69 @@ const PassengerHomeNav = () => {
             </Box>
           </Box> */}
 
-          <Box
-            display="flex"
-            alignItems="center"
-            justifyContent="space-between"
-            p={1}
-            sx={{
-              border: "2px solid #22CEA6",
-              borderRadius: "20px",
-            }}
-            onClick={() => setOpenSetAddress(true)}
-          >
-            <Box display="flex" alignItems="center" gap={2}>
-              <Typography
-                component="span"
-                fontSize={"12px"}
-                color={!currentUser?.pickUpLocation ? "red" : "#22CEA6"}
-              >
-                <LocationOnIcon fontSize="large" />
-              </Typography>
-              <Typography
-                component="span"
-                fontWeight={"bold"}
-                fontSize={"16px"}
-                color={!currentUser?.pickUpLocation && "red"}
-              >
-                {currentUser?.pickUpLocation?.address?.structured_formatting
-                  ?.main_text ||
-                  currentUser?.pickUpLocation ||
-                  "Location Not set"}
-              </Typography>
+          {rideDataLoading ? (
+            <Skeleton
+              variant="rounded"
+              width="100%"
+              height={50}
+              sx={{ borderRadius: "20px" }}
+            />
+          ) : (
+            <Box
+              display="flex"
+              alignItems="center"
+              justifyContent="space-between"
+              p={1}
+              sx={{
+                border: rideData?.rideStarted
+                  ? "2px solid rgba(220, 230, 228, 0.74)"
+                  : "2px solid #22CEA6",
+                borderRadius: "20px",
+              }}
+              onClick={() => !rideData?.rideStarted && setOpenSetAddress(true)}
+            >
+              <Box display="flex" alignItems="center" gap={2}>
+                <Typography
+                  component="span"
+                  fontSize={"12px"}
+                  color={
+                    rideData?.rideStarted
+                      ? "rgba(220, 230, 228, 0.74)"
+                      : !currentUser?.pickUpLocation
+                      ? "red"
+                      : "#22CEA6"
+                  }
+                >
+                  <LocationOnIcon fontSize="large" />
+                </Typography>
+                <Typography
+                  component="span"
+                  fontWeight={"bold"}
+                  fontSize={"16px"}
+                  color={
+                    rideData?.rideStarted
+                      ? "rgba(153, 158, 157, 0.74)"
+                      : !currentUser?.pickUpLocation && "red"
+                  }
+                >
+                  {currentUser?.pickUpLocation?.address?.structured_formatting
+                    ?.main_text ||
+                    currentUser?.pickUpLocation ||
+                    "Location Not set"}
+                </Typography>
+              </Box>
+              <EditIcon
+                sx={{
+                  color: rideData?.rideStarted
+                    ? "rgba(220, 230, 228, 0.74)"
+                    : "info.main",
+                }}
+                // color={
+                //   rideData?.rideStarted ? "rgba(220, 230, 228, 0.74)" : "info"
+                // }
+              />
             </Box>
-            <EditIcon color="info" />
-          </Box>
+          )}
 
           <Grid container spacing={2}>
             <Grid size={rideData ? 5 : 12}>
@@ -334,14 +366,14 @@ const PassengerHomeNav = () => {
                       fontSize={"13px"}
                       fontWeight={"bold"}
                     >
-                      {rideData.car.name}
+                      {rideData?.car?.name || "N/A"}
                     </Typography>
                     <Typography
                       component="span"
                       fontSize={"13px"}
                       fontWeight={"bold"}
                     >
-                      {rideData.car.plate || "N/A"}
+                      {rideData?.car?.plate || "N/A"}
                     </Typography>
                   </Box>
                 ) : (
@@ -382,28 +414,39 @@ const PassengerHomeNav = () => {
                     </Typography>
                   </Box>
                 </Grid>
-                <Grid size={2}>
-                  <Box
-                    display="flex"
-                    flexDirection="column"
-                    alignItems="center"
-                  >
-                    <IconButton
-                      sx={{ border: "2px solid #22CEA6" }}
-                      onClick={() => setOpenRideDetails(true)}
-                    >
-                      <MoreHorizRoundedIcon color="info" />
-                    </IconButton>
-                  </Box>
-                </Grid>
               </>
             ) : (
               ""
             )}
           </Grid>
         </Box>
+        {rideData?.rideStarted && (
+          <Button
+            sx={{
+              bgcolor: "green",
+
+              color: "white",
+              p: 1,
+              display: "flex",
+              justifyContent: "center",
+              gap: 4,
+              borderRadius: 0,
+              textTransform: "none",
+            }}
+            onClick={() => setOpenRideDetails(true)}
+          >
+            Ride Started
+            <EastIcon />
+          </Button>
+        )}
       </AppBar>
-      <Toolbar sx={{ height: navbarHeight, mb: 2, bgcolor: "#fff" }} />
+      <Toolbar
+        sx={{
+          height: navbarHeight,
+          mb: rideData?.rideStarted ? 4 : 2,
+          bgcolor: "#fff",
+        }}
+      />
       <Dialog
         open={openLeaveTimeModal}
         onClose={() => setOpenLeaveTimeModal(false)}
