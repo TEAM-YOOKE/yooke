@@ -65,7 +65,7 @@ const ConnectionsPassenger = () => {
     refreshCurrentUserDoc,
     rideData,
     rideDataLoading,
-    refreshRideData,
+    // refreshRideData,
   } = useCurrentUserDoc();
 
   console.log("ride data", rideData);
@@ -132,7 +132,7 @@ const ConnectionsPassenger = () => {
         color="default"
         sx={{ pt: 2, bgcolor: "white", mb: 2 }}
       >
-        <Box display="flex" flexDirection="column" gap={2}>
+        <Box display="flex" flexDirection="column" gap={2} mb={2}>
           <Typography
             variant="h5"
             textAlign="center"
@@ -142,23 +142,25 @@ const ConnectionsPassenger = () => {
           </Typography>
           <PassengerConnectionsNav value={tabValue} setValue={setTabValue} />
         </Box>
-        <Button
-          sx={{
-            bgcolor: "green",
-            mt: 2,
-            color: "white",
-            p: 1,
-            display: "flex",
-            justifyContent: "center",
-            gap: 4,
-            borderRadius: 0,
-            textTransform: "none",
-          }}
-          onClick={handleOpenRideDetails}
-        >
-          Ride Started
-          <EastIcon />
-        </Button>
+        {rideData?.rideStarted && (
+          <Button
+            sx={{
+              bgcolor: "green",
+
+              color: "white",
+              p: 1,
+              display: "flex",
+              justifyContent: "center",
+              gap: 4,
+              borderRadius: 0,
+              textTransform: "none",
+            }}
+            onClick={handleOpenRideDetails}
+          >
+            Ride Started
+            <EastIcon />
+          </Button>
+        )}
       </AppBar>
       <Container>
         {tabValue === 0 ? (

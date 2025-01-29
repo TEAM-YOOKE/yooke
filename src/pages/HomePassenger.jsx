@@ -21,7 +21,7 @@ import SetAddress from "../modals/SetAddress";
 function HomePassenger() {
   const {
     refreshCurrentUserDoc,
-    refreshRideData,
+    // refreshRideData,
     rideData,
     currentUserDoc: currentUser,
     currentUserDocLoading,
@@ -162,7 +162,7 @@ function HomePassenger() {
           assignedCar: null,
         });
         await refreshRides();
-        await refreshRideData();
+        // await refreshRideData();
         await refreshCurrentUserDoc();
       }
     }
@@ -200,7 +200,7 @@ function HomePassenger() {
       });
       await refreshRides();
       await refreshCurrentUserDoc();
-      await refreshRideData();
+      // await refreshRideData();
       setSnackbar({
         open: true,
         message: "Joined the ride successfully",
@@ -232,7 +232,7 @@ function HomePassenger() {
       });
       await refreshRides();
       await refreshCurrentUserDoc();
-      await refreshRideData();
+      // await refreshRideData();
 
       setSnackbar({
         open: true,
@@ -258,6 +258,22 @@ function HomePassenger() {
         All payment terms and conditions must be negotiated directly between you
         and the car owner!
       </Alert>
+
+      {rideData?.rideStarted && (
+        <Box
+          sx={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(255, 255, 255, 0.5)", // Light overlay
+            backdropFilter: "blur(4px)", // Apply blur
+            // pointerEvents: "none", // Disable clicks
+            zIndex: 10,
+          }}
+        />
+      )}
       <Box px={2} py={3}>
         {/* Check if the pick-up location is not set */}
         {ridesLoading || currentUserDocLoading ? (

@@ -1,16 +1,9 @@
+import { useEffect, useState } from "react";
+import { doc, getDoc, onSnapshot } from "firebase/firestore";
+import { db } from "../firebase-config";
+import { useAuth } from "../helpers/GeneralContext";
 import useSWR from "swr";
 import { fetchFirestoreCollection } from "../services/firestoreConfig";
-import { useAuth } from "../helpers/GeneralContext";
-import {
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  collection,
-  where,
-} from "firebase/firestore";
-import { db } from "../firebase-config";
-import { useEffect, useState } from "react";
 
 const useCurrentUserDoc = () => {
   const { currentUser } = useAuth();
@@ -30,61 +23,64 @@ const useCurrentUserDoc = () => {
     return userDoc;
   };
 
-  // Fetch ride data
-  const fetchRideData = async (userDoc) => {
-    if (!userDoc || !userDoc.assignedCar) {
-      setRideData(null);
-      return null;
-    }
-
+  // Fetch additional ride details
+  const fetchRideDetails = async (ride) => {
     try {
-      setRideDataLoading(true);
-      const rideDocRef = doc(db, "rides", userDoc.assignedCar);
-      const rideSnapshot = await getDoc(rideDocRef);
-      const ride = rideSnapshot.data();
+      // Fetch driver details
+      const driverDocRef = doc(db, "accounts", ride.driverId);
+      const driverSnapshot = await getDoc(driverDocRef);
+      const driverData = driverSnapshot.exists() ? driverSnapshot.data() : null;
 
-      console.log("ride", ride);
-      if (ride && ride.passengers.includes(userDoc.id)) {
-        const driverDocRef = doc(db, "accounts", ride.driverId);
-        const driverSnapshot = await getDoc(driverDocRef);
+      // Fetch car details
+      const carData = driverSnapshot.exists()
+        ? {
+            name: driverSnapshot.data().carName,
+            plate: driverSnapshot.data().carPlate,
+          }
+        : null;
 
-        const carData = driverSnapshot.exists()
-          ? {
-              name: driverSnapshot.data().carName,
-              plate: driverSnapshot.data().carPlate,
-            }
-          : null;
+      // Fetch passenger details
+      const passengerIds = ride.passengers || [];
+      const passengerPromises = passengerIds.map(async (id) => {
+        const passengerDocRef = doc(db, "accounts", id);
+        const passengerSnapshot = await getDoc(passengerDocRef);
+        return passengerSnapshot.exists() ? passengerSnapshot.data() : null;
+      });
 
-        const driverData = driverSnapshot.exists()
-          ? { ...driverSnapshot.data() }
-          : null;
+      const passengerList = await Promise.all(passengerPromises);
 
-        // Fetch passenger details
-        const passengerIds = ride.passengers || [];
-        const passengerPromises = passengerIds.map(async (id) => {
-          const passengerDocRef = doc(db, "accounts", id);
-
-          const passengerSnapshot = await getDoc(passengerDocRef);
-          if (passengerSnapshot.exists()) {
-            return passengerSnapshot.data();
-          } else return null;
-        });
-        const passengerList = await Promise.all(passengerPromises);
-        const rideDetails = {
-          ...ride,
-          car: carData,
-          driverData,
-          passengers: passengerList,
-        };
-        setRideData(rideDetails);
-        return rideDetails;
-      }
+      return { ...ride, car: carData, driverData, passengers: passengerList };
     } catch (error) {
-      console.error("Error fetching ride data:", error);
-      return null;
-    } finally {
-      setRideDataLoading(false);
+      console.error("Error fetching ride details:", error);
+      return { ...ride, car: null, driverData: null, passengers: [] };
     }
+  };
+
+  // Listen for real-time updates to ride data
+  const setupRideListener = (userDoc) => {
+    if (!userDoc || !userDoc.assignedCar) return;
+    setRideDataLoading(true);
+
+    const rideDocRef = doc(db, "rides", userDoc.assignedCar);
+
+    // Set up real-time listener
+    const unsubscribe = onSnapshot(rideDocRef, async (snapshot) => {
+      if (snapshot.exists()) {
+        const ride = snapshot.data();
+
+        if (ride.passengers.includes(userDoc.id)) {
+          const rideDetails = await fetchRideDetails(ride);
+          setRideData(rideDetails);
+        } else {
+          setRideData(null);
+        }
+      } else {
+        setRideData(null);
+      }
+      setRideDataLoading(false);
+    });
+
+    return unsubscribe; // Return the unsubscribe function for cleanup
   };
 
   // SWR for user document
@@ -95,11 +91,13 @@ const useCurrentUserDoc = () => {
     mutate: refreshUserDoc,
   } = useSWR(currentUser ? "currentUserDoc" : null, fetchCurrentUserDoc);
 
-  // Fetch ride data whenever userDoc changes
   useEffect(() => {
     if (userDoc) {
       console.log("userDoc", userDoc);
-      fetchRideData(userDoc);
+      const unsubscribe = setupRideListener(userDoc);
+      return () => {
+        if (unsubscribe) unsubscribe(); // Cleanup listener when component unmounts
+      };
     }
   }, [userDoc]);
 
@@ -110,7 +108,7 @@ const useCurrentUserDoc = () => {
     currentUserDocError: userError,
     rideData,
     rideDataLoading,
-    refreshRideData: () => fetchRideData(userDoc),
+    refreshRideData: () => setupRideListener(userDoc),
   };
 };
 
