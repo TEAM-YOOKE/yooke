@@ -146,7 +146,7 @@ const RideTrackingMap = (props) => {
     } else {
       console.error("Google Maps API not loaded.");
     }
-  }, [rideData]);
+  }, []);
 
   return (
     <Box ref={mapRef} id="map" style={{ width: "100%", height: "100%" }} />
