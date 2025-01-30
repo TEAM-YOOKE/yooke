@@ -186,6 +186,8 @@ const RideDetails = (props) => {
                 <RideTrackingMap
                   setEstimatedTime={setEstimatedTime}
                   setCalculatedDistance={setCalculatedDistance}
+                  rideData={rideData}
+                  currentUser={currentUser}
                 />
               </Wrapper>
               <Box borderTopRightRadius="12px" borderTopLeftRadius="12px">
