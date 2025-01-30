@@ -30,7 +30,7 @@ import { handleOpenWhastApp } from "../helpers/helperFunctions";
 const style = {
   position: "absolute",
   top: 0,
-  height: "60%",
+  height: "70%",
   overflowY: "scroll",
   width: "100%",
   bgcolor: "#EFF3F6",
