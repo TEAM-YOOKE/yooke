@@ -5,6 +5,7 @@ import Box from "@mui/material/Box";
 import {
   AppBar,
   Avatar,
+  Button,
   Card,
   CircularProgress,
   Icon,
@@ -16,6 +17,8 @@ import {
 import Grid from "@mui/material/Grid2";
 import { Wrapper, Status } from "@googlemaps/react-wrapper";
 import CloseIcon from "@mui/icons-material/Close";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import PersonIcon from "@mui/icons-material/Person";
 import PhoneIcon from "@mui/icons-material/Phone";
@@ -23,10 +26,11 @@ import ToysIcon from "@mui/icons-material/Toys";
 import CircularProgressLoading from "../components/feedbacks/CircularProgressLoading";
 import RideTrackingMap from "../components/inputs/RideTrackingMap";
 import useCurrentUserDoc from "../hooks/currentUserDoc";
+import { handleOpenWhastApp } from "../helpers/helperFunctions";
 const style = {
   position: "absolute",
-  bottom: 0,
-  height: "100%",
+  top: 0,
+  height: "60%",
   overflowY: "scroll",
   width: "100%",
   bgcolor: "#EFF3F6",
@@ -67,6 +71,10 @@ const RideDetails = (props) => {
 
   const containerRef = React.useRef(null);
 
+  const handleCancelTrip = () => {
+    //
+  };
+
   return (
     <div>
       <Modal
@@ -94,7 +102,7 @@ const RideDetails = (props) => {
             }}
           >
             <Box sx={style}>
-              <Card
+              {/* <Card
                 sx={{
                   position: "fixed",
                   borderRadius: "20px",
@@ -116,7 +124,7 @@ const RideDetails = (props) => {
                     fontSize: "11px",
                   }}
                 >
-                  {/* First Stop Point */}
+                  
                   <Box
                     sx={{
                       display: "flex",
@@ -132,7 +140,7 @@ const RideDetails = (props) => {
                     </Typography>
                   </Box>
 
-                  {/* Second Stop Point */}
+                  
                   <Box
                     sx={{
                       display: "flex",
@@ -150,7 +158,7 @@ const RideDetails = (props) => {
                     </Typography>
                   </Box>
                 </Box>
-              </Card>
+              </Card> */}
 
               <IconButton
                 sx={{
@@ -179,8 +187,6 @@ const RideDetails = (props) => {
                   setEstimatedTime={setEstimatedTime}
                   setCalculatedDistance={setCalculatedDistance}
                 />
-
-                {loading && <CircularProgressLoading />}
               </Wrapper>
               <Box borderTopRightRadius="12px" borderTopLeftRadius="12px">
                 <AppBar
@@ -218,7 +224,7 @@ const RideDetails = (props) => {
                     >
                       <Typography variant="h6" textAlign="center">
                         <strong>
-                          {!rideData?.rideStarted
+                          {rideData?.rideStarted
                             ? "Driver is  heading to your location..."
                             : "Not Started"}
                         </strong>
@@ -263,10 +269,9 @@ const RideDetails = (props) => {
                         </Box>
                       </Grid>
 
-                      {/* Driver's Details */}
-                      <Grid size={7}>
+                      <Grid size={6}>
                         <Box>
-                          <Typography variant="body1">
+                          <Typography>
                             <strong>
                               {rideData?.driverData?.username ||
                                 "Unknown Driver"}
@@ -277,19 +282,33 @@ const RideDetails = (props) => {
                             fontSize="11px"
                             color="text.secondary"
                           >
-                            {rideData?.driverData?.whatsappNumber ||
-                              "No contact info"}
+                            ({rideData?.driverData?.company})
                           </Typography>
                         </Box>
                       </Grid>
 
-                      {/* Call Button */}
-                      <Grid size={2}>
+                      {/* Action Buttons */}
+                      <Grid size={3}>
                         <Box
                           display="flex"
                           justifyContent="center"
                           alignItems="center"
+                          gap={2}
                         >
+                          <IconButton
+                            sx={{
+                              border: "1px solid #22CEA6",
+                              padding: "5px",
+                            }}
+                            onClick={() => {
+                              handleOpenWhastApp(rideData, currentUser);
+                            }}
+                          >
+                            <WhatsAppIcon
+                              sx={{ color: "#22CEA6" }}
+                              fontSize="small"
+                            />
+                          </IconButton>
                           <IconButton
                             sx={{
                               border: "1px solid #22CEA6",
@@ -311,6 +330,33 @@ const RideDetails = (props) => {
                         </Box>
                       </Grid>
                     </Grid>
+                    <Box
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="space-between"
+                    >
+                      <Button
+                        color="error"
+                        // variant="outlined"
+                        sx={{ textTransform: "none", alignSelf: "left" }}
+                        fullWidth={false}
+                        onClick={handleCancelTrip}
+                      >
+                        Cancel Trip
+                      </Button>
+                      <Button
+                        color="success"
+                        variant="outlined"
+                        sx={{
+                          textTransform: "none",
+                          borderRadius: "20px",
+                          alignSelf: "left",
+                        }}
+                        fullWidth={false}
+                      >
+                        Get In
+                      </Button>
+                    </Box>
                   </Box>
                 </AppBar>
               </Box>
