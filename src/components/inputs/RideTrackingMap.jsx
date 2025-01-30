@@ -23,14 +23,14 @@ const mapStyles = [
 const RideTrackingMap = (props) => {
   const mapRef = useRef(null);
 
-  const {
-    currentUserDoc: currentUser,
-    currentUserDocLoading,
-    rideData,
-    rideDataLoading,
-  } = useCurrentUserDoc();
+  // const {
+  //   currentUserDoc: currentUser,
+  //   currentUserDocLoading,
+  //   rideData,
+  //   rideDataLoading,
+  // } = useCurrentUserDoc();
 
-  console.log("current user", rideData);
+  // console.log("current user", rideData);
 
   const loadMapDetails = (driverLoc, passengerLoc) => {
     const directionsService = new window.google.maps.DirectionsService();
@@ -96,17 +96,17 @@ const RideTrackingMap = (props) => {
   };
 
   const setLocations = () => {
-    if (!rideData?.driverLiveLocation) {
+    if (!props.rideData?.driverLiveLocation) {
       console.error("Driver live location is missing.");
       return;
     }
 
     const driverLoc = {
-      lat: rideData.driverLiveLocation.latitude,
-      lng: rideData.driverLiveLocation.longitude,
+      lat: props.rideData.driverLiveLocation.latitude,
+      lng: props.rideData.driverLiveLocation.longitude,
     };
 
-    let passengerLoc = currentUser?.pickUpLocation;
+    let passengerLoc = props.currentUser?.pickUpLocation;
 
     // Check if pickUpLocation is already in lat/lng format
     if (
