@@ -1,6 +1,7 @@
 import { Box } from "@mui/material";
 import React, { useEffect, useRef } from "react";
 import useCurrentUserDoc from "../../hooks/currentUserDoc";
+
 const mapStyles = [
   {
     featureType: "poi",
@@ -18,6 +19,7 @@ const mapStyles = [
     stylers: [{ color: "#4e4e4e" }],
   },
 ];
+
 const RideTrackingMap = (props) => {
   const mapRef = useRef(null);
 
@@ -45,7 +47,7 @@ const RideTrackingMap = (props) => {
 
     const map = new window.google.maps.Map(mapRef.current, {
       center: driverLoc,
-      zoom: 17,
+      zoom: 15,
       gestureHandling: "greedy",
       disableDefaultUI: true,
       clickableIcons: false,
@@ -57,7 +59,6 @@ const RideTrackingMap = (props) => {
       position: driverLoc,
       icon: {
         url: "/car-location.png",
-
         scaledSize: new window.google.maps.Size(40, 40),
       },
       map,
@@ -68,7 +69,6 @@ const RideTrackingMap = (props) => {
       position: passengerLoc,
       icon: {
         url: "/pin2.png",
-        // scaledSize: new window.google.maps.Size(50, 50),
       },
       map,
     });
@@ -96,37 +96,48 @@ const RideTrackingMap = (props) => {
   };
 
   const setLocations = () => {
-    const geocoder = new window.google.maps.Geocoder();
-    const driverAddress = rideData?.stopPoints[0];
-    const passengerAddress =
-      currentUser?.pickUpLocation?.address?.description ||
-      currentUser?.pickUpLocation;
+    if (!rideData?.driverLiveLocation) {
+      console.error("Driver live location is missing.");
+      return;
+    }
 
-    const geocodeAddress = (address) =>
-      new Promise((resolve, reject) => {
-        geocoder.geocode({ address }, (results, status) => {
-          if (status === "OK" && results[0]) {
-            const location = {
-              lat: results[0].geometry.location.lat(),
-              lng: results[0].geometry.location.lng(),
-            };
-            resolve(location);
-          } else {
-            reject(`Geocode failed for ${address}: ${status}`);
-          }
-        });
-      });
+    const driverLoc = {
+      lat: rideData.driverLiveLocation.latitude,
+      lng: rideData.driverLiveLocation.longitude,
+    };
 
-    Promise.all([
-      geocodeAddress(driverAddress),
-      geocodeAddress(passengerAddress),
-    ])
-      .then(([driverLoc, passengerLoc]) => {
-        loadMapDetails(driverLoc, passengerLoc);
-      })
-      .catch((error) => {
-        console.error(error);
+    let passengerLoc = currentUser?.pickUpLocation;
+
+    // Check if pickUpLocation is already in lat/lng format
+    if (
+      passengerLoc &&
+      typeof passengerLoc.lat === "number" &&
+      typeof passengerLoc.lng === "number"
+    ) {
+      loadMapDetails(driverLoc, passengerLoc);
+    } else {
+      // If not, use geocoding
+      const geocoder = new window.google.maps.Geocoder();
+      const address =
+        passengerLoc?.address?.description || passengerLoc?.address || "";
+
+      if (!address) {
+        console.error("Passenger location is missing.");
+        return;
+      }
+
+      geocoder.geocode({ address }, (results, status) => {
+        if (status === "OK" && results[0]) {
+          passengerLoc = {
+            lat: results[0].geometry.location.lat(),
+            lng: results[0].geometry.location.lng(),
+          };
+          loadMapDetails(driverLoc, passengerLoc);
+        } else {
+          console.error("Geocode failed for passenger location:", status);
+        }
       });
+    }
   };
 
   useEffect(() => {

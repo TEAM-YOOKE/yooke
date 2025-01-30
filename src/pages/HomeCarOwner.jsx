@@ -41,6 +41,41 @@ function HomeCarOwner() {
       setStopPoints(rideData.stopPoints || []);
     }
   }, [rideData]);
+  useEffect(() => {
+    if (!rideData) return;
+    setAcceptingRideRequests((prev) => rideData.acceptingRideRequests ?? prev);
+    setLeaveTime((prev) =>
+      rideData.leaveTime ? dayjs(rideData.leaveTime) : prev
+    );
+    setStopPoints((prev) => rideData.stopPoints ?? prev);
+  }, [rideData]);
+
+  useEffect(() => {
+    let watchId;
+    if (rideData?.rideStarted) {
+      watchId = navigator.geolocation.watchPosition(
+        async (position) => {
+          try {
+            const rideDocRef = doc(db, "rides", rideData.id);
+            await updateDoc(rideDocRef, {
+              driverLiveLocation: {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+              },
+            });
+          } catch (error) {
+            console.error("Error updating location:", error);
+          }
+        },
+        (error) => console.error("Error getting location:", error),
+        { enableHighAccuracy: true }
+      );
+    }
+
+    return () => {
+      if (watchId) navigator.geolocation.clearWatch(watchId);
+    };
+  }, [rideData?.rideStarted]);
 
   const handleSaveChanges = async () => {
     setSaving(true);
@@ -72,30 +107,36 @@ function HomeCarOwner() {
     setChangesMade(true);
   };
 
-  const handleRideStarted = () => {
+  const handleRideStarted = async () => {
     if (
       !window.confirm(
         "You are about to start the ride. Are you sure you want to continue?"
       )
     )
       return;
-    // update the ride data
-    const rideDocRef = doc(db, "rides", rideData.id);
-    updateDoc(rideDocRef, {
-      rideStarted: true,
-    });
+
+    try {
+      const rideDocRef = doc(db, "rides", rideData.id);
+      await updateDoc(rideDocRef, { rideStarted: true });
+    } catch (error) {
+      console.error("Error starting ride:", error);
+    }
   };
-  const handleEndRide = () => {
+
+  const handleEndRide = async () => {
     if (
       !window.confirm(
         "You are about to end the ride. Are you sure you want to continue?"
       )
     )
       return;
-    const rideDocRef = doc(db, "rides", rideData.id);
-    updateDoc(rideDocRef, {
-      rideStarted: false,
-    });
+
+    try {
+      const rideDocRef = doc(db, "rides", rideData.id);
+      await updateDoc(rideDocRef, { rideStarted: false });
+    } catch (error) {
+      console.error("Error ending ride:", error);
+    }
   };
 
   return (
