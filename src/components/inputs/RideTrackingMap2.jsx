@@ -29,7 +29,7 @@ const RideTrackingMap2 = (props) => {
 
     const newMap = new window.google.maps.Map(mapRef.current, {
       center,
-      zoom: 15,
+      zoom: 16,
       gestureHandling: "greedy",
       disableDefaultUI: true,
       clickableIcons: false,
