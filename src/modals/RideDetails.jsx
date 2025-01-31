@@ -27,6 +27,7 @@ import CircularProgressLoading from "../components/feedbacks/CircularProgressLoa
 import RideTrackingMap from "../components/inputs/RideTrackingMap";
 import useCurrentUserDoc from "../hooks/currentUserDoc";
 import { handleOpenWhastApp } from "../helpers/helperFunctions";
+import RideTrackingMap2 from "../components/inputs/RideTrackingMap2";
 const style = {
   position: "absolute",
   top: 0,
@@ -183,7 +184,7 @@ const RideDetails = (props) => {
                 render={render}
                 apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
               >
-                <RideTrackingMap
+                <RideTrackingMap2
                   setEstimatedTime={setEstimatedTime}
                   setCalculatedDistance={setCalculatedDistance}
                   rideData={rideData}
