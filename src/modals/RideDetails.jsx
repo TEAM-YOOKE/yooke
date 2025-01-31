@@ -28,6 +28,7 @@ import RideTrackingMap from "../components/inputs/RideTrackingMap";
 import useCurrentUserDoc from "../hooks/currentUserDoc";
 import { handleOpenWhastApp } from "../helpers/helperFunctions";
 import RideTrackingMap2 from "../components/inputs/RideTrackingMap2";
+
 const style = {
   position: "absolute",
   top: 0,
