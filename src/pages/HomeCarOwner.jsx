@@ -4,7 +4,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import { Box, Alert, Button, Switch, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase-config";
 import StopPoints from "../components/StopPoints";
 import { useAuth } from "../helpers/GeneralContext";
@@ -117,7 +117,12 @@ function HomeCarOwner() {
 
     try {
       const rideDocRef = doc(db, "rides", rideData.id);
-      await updateDoc(rideDocRef, { rideStarted: true });
+      const rideSnapShop = await getDoc(rideDocRef);
+      // console.log(rideSnapShop.data().passengers);
+      await updateDoc(rideDocRef, {
+        rideStarted: true,
+        going: rideSnapShop.data().passengers,
+      });
     } catch (error) {
       console.error("Error starting ride:", error);
     }
@@ -133,7 +138,7 @@ function HomeCarOwner() {
 
     try {
       const rideDocRef = doc(db, "rides", rideData.id);
-      await updateDoc(rideDocRef, { rideStarted: false });
+      await updateDoc(rideDocRef, { rideStarted: false, going: [] });
     } catch (error) {
       console.error("Error ending ride:", error);
     }

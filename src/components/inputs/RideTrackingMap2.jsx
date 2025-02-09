@@ -140,6 +140,11 @@ const RideTrackingMap2 = (props) => {
         lng: props.rideData.driverLiveLocation.longitude,
       };
       updateDriverLocation(newDriverLoc);
+      loadDirections(
+        newDriverLoc,
+        props.currentUser?.pickUpLocation?.pinLocation,
+        map
+      );
     }
   }, [props.rideData?.driverLiveLocation]); // Update driver marker when location changes
 

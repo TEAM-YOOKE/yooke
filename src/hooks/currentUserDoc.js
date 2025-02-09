@@ -66,7 +66,7 @@ const useCurrentUserDoc = () => {
     // Set up real-time listener
     const unsubscribe = onSnapshot(rideDocRef, async (snapshot) => {
       if (snapshot.exists()) {
-        const ride = snapshot.data();
+        const ride = { id: snapshot.id, ...snapshot.data() };
 
         if (ride.passengers.includes(userDoc.id)) {
           const rideDetails = await fetchRideDetails(ride);
