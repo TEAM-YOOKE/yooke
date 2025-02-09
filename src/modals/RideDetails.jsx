@@ -3,6 +3,7 @@ import Modal from "@mui/material/Modal";
 import Box from "@mui/material/Box";
 
 import {
+  Alert,
   AppBar,
   Avatar,
   Button,
@@ -10,6 +11,7 @@ import {
   CircularProgress,
   Icon,
   IconButton,
+  Snackbar,
   Toolbar,
   Typography,
   Zoom,
@@ -28,6 +30,8 @@ import RideTrackingMap from "../components/inputs/RideTrackingMap";
 import useCurrentUserDoc from "../hooks/currentUserDoc";
 import { handleOpenWhastApp } from "../helpers/helperFunctions";
 import RideTrackingMap2 from "../components/inputs/RideTrackingMap2";
+import { arrayRemove, doc, updateDoc } from "firebase/firestore";
+import { db } from "../firebase-config";
 
 const style = {
   position: "absolute",
@@ -70,11 +74,42 @@ const RideDetails = (props) => {
   const [loading, setLoading] = useState(false);
   const [estimatedTime, setEstimatedTime] = useState(0);
   const [calculatedDistance, setCalculatedDistance] = useState(0);
-
+  const [cancelTripLoading, setCancelTRipLoading] = useState(false);
   const containerRef = React.useRef(null);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
-  const handleCancelTrip = () => {
-    //
+  const handleCancelTrip = async () => {
+    if (!window.confirm("Are you sure you want to cancel this trip?")) return;
+    setCancelTRipLoading(true);
+    try {
+      const rideRef = doc(db, "rides", rideData.id);
+      await updateDoc(rideRef, {
+        going: arrayRemove(currentUser.id),
+      });
+      props.onClose();
+      // await refreshRides();
+      // await refreshCurrentUserDoc();
+      // await refreshRideData();
+
+      setSnackbar({
+        open: true,
+        message: "Trip canceled",
+        severity: "success",
+      });
+    } catch (error) {
+      console.error("Error canceling trip:", error);
+      setSnackbar({
+        open: true,
+        message: "Failed to cancel trip",
+        severity: "error",
+      });
+    } finally {
+      setCancelTRipLoading(false);
+    }
   };
 
   return (
@@ -364,6 +399,24 @@ const RideDetails = (props) => {
                   </Box>
                 </AppBar>
               </Box>
+              <Snackbar
+                anchorOrigin={{ vertical: "top", horizontal: "center" }}
+                open={snackbar.open}
+                autoHideDuration={6000}
+                onClose={() =>
+                  setSnackbar((prev) => ({ ...prev, open: false }))
+                }
+              >
+                <Alert
+                  sx={{ borderRadius: "40px" }}
+                  severity={snackbar.severity}
+                  onClose={() =>
+                    setSnackbar((prev) => ({ ...prev, open: false }))
+                  }
+                >
+                  {snackbar.message}
+                </Alert>
+              </Snackbar>
             </Box>
           </Box>
         </Zoom>

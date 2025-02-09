@@ -287,19 +287,29 @@ const PassengerHomeNav = () => {
               justifyContent="space-between"
               p={1}
               sx={{
-                border: rideData?.rideStarted
-                  ? "2px solid rgba(220, 230, 228, 0.74)"
-                  : "2px solid #22CEA6",
+                border:
+                  rideData?.rideStarted &&
+                  rideData?.going.includes(currentUser?.id)
+                    ? "2px solid rgba(220, 230, 228, 0.74)"
+                    : "2px solid #22CEA6",
                 borderRadius: "20px",
               }}
-              onClick={() => !rideData?.rideStarted && setOpenSetAddress(true)}
+              onClick={() => {
+                if (
+                  rideData?.rideStarted &&
+                  rideData?.going.includes(currentUser?.id)
+                )
+                  return;
+                setOpenSetAddress(true);
+              }}
             >
               <Box display="flex" alignItems="center" gap={2}>
                 <Typography
                   component="span"
                   fontSize={"12px"}
                   color={
-                    rideData?.rideStarted
+                    rideData?.rideStarted &&
+                    rideData?.going.includes(currentUser?.id)
                       ? "rgba(220, 230, 228, 0.74)"
                       : !currentUser?.pickUpLocation
                       ? "red"
@@ -313,7 +323,8 @@ const PassengerHomeNav = () => {
                   fontWeight={"bold"}
                   fontSize={"16px"}
                   color={
-                    rideData?.rideStarted
+                    rideData?.rideStarted &&
+                    rideData?.going.includes(currentUser?.id)
                       ? "rgba(153, 158, 157, 0.74)"
                       : !currentUser?.pickUpLocation && "red"
                   }
@@ -326,9 +337,11 @@ const PassengerHomeNav = () => {
               </Box>
               <EditIcon
                 sx={{
-                  color: rideData?.rideStarted
-                    ? "rgba(220, 230, 228, 0.74)"
-                    : "info.main",
+                  color:
+                    rideData?.rideStarted &&
+                    rideData?.going.includes(currentUser?.id)
+                      ? "rgba(220, 230, 228, 0.74)"
+                      : "info.main",
                 }}
                 // color={
                 //   rideData?.rideStarted ? "rgba(220, 230, 228, 0.74)" : "info"
@@ -420,7 +433,7 @@ const PassengerHomeNav = () => {
             )}
           </Grid>
         </Box>
-        {rideData?.rideStarted && (
+        {rideData?.rideStarted && rideData?.going.includes(currentUser?.id) && (
           <Button
             sx={{
               bgcolor: "green",
