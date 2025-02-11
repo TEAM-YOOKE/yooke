@@ -1,11 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Container, Grid, Typography, Box } from "@mui/material";
-import { useAuth } from "../helpers/GeneralContext";
+import { Container, Box } from "@mui/material";
 import { LanguageContext } from "../helpers/LanguageContext";
-import ConnectionCard from "../components/ConnectionCard";
-import useCurrentUserDoc from "../hooks/currentUserDoc";
-import { collection, getDocs, query, where } from "firebase/firestore";
-import { db } from "../firebase-config";
+
 import useCurrentCarOwnerDoc from "../hooks/currentCarOwnerDoc";
 import PassengerCard from "../components/cards/PassengerCard";
 import CarOwnerConnectionsNav from "../components/navbars/CarOwnerConnectionsNav";
