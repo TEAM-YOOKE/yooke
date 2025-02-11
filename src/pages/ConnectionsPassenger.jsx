@@ -93,7 +93,7 @@ const ConnectionsPassenger = () => {
           </Typography>
           <PassengerConnectionsNav value={tabValue} setValue={setTabValue} />
         </Box>
-        {rideData?.rideStarted && (
+        {rideData?.rideStarted && rideData?.going.includes(currentUser?.id) && (
           <Button
             sx={{
               bgcolor: "green",
