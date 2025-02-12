@@ -13,7 +13,8 @@ import { TextField } from "@mui/material";
 import { LanguageContext } from "../helpers/LanguageContext";
 import GoogleMapSearchMultiple from "../components/inputs/GoogleMapSearchMultiple";
 import useCurrentCarOwnerDoc from "../hooks/currentCarOwnerDoc";
-
+import { database } from "../firebase-config";
+import { ref, set, remove } from "firebase/database";
 function HomeCarOwner() {
   // const { currentUser, rideData, updateUser } = useAuth();
   const {
@@ -41,6 +42,7 @@ function HomeCarOwner() {
       setStopPoints(rideData.stopPoints || []);
     }
   }, [rideData]);
+
   useEffect(() => {
     if (!rideData) return;
     setAcceptingRideRequests((prev) => rideData.acceptingRideRequests ?? prev);
@@ -50,21 +52,52 @@ function HomeCarOwner() {
     setStopPoints((prev) => rideData.stopPoints ?? prev);
   }, [rideData]);
 
+  // //watch 1
+  // useEffect(() => {
+  //   let watchId;
+  //   if (rideData?.rideStarted) {
+  //     watchId = navigator.geolocation.watchPosition(
+  //       async (position) => {
+  //         try {
+  //           const rideDocRef = doc(db, "rides", rideData.id);
+  //           await updateDoc(rideDocRef, {
+  //             driverLiveLocation: {
+  //               latitude: position.coords.latitude,
+  //               longitude: position.coords.longitude,
+  //             },
+  //           });
+  //         } catch (error) {
+  //           console.error("Error updating location:", error);
+  //         }
+  //       },
+  //       (error) => console.error("Error getting location:", error),
+  //       { enableHighAccuracy: true }
+  //     );
+  //   }
+
+  //   return () => {
+  //     if (watchId) navigator.geolocation.clearWatch(watchId);
+  //   };
+  // }, [rideData?.rideStarted]);
+
+  //watch 2
   useEffect(() => {
     let watchId;
     if (rideData?.rideStarted) {
       watchId = navigator.geolocation.watchPosition(
         async (position) => {
           try {
-            const rideDocRef = doc(db, "rides", rideData.id);
-            await updateDoc(rideDocRef, {
-              driverLiveLocation: {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-              },
+            const locationRef = ref(
+              database,
+              `driverLocations/${rideData.driverId}`
+            );
+            await set(locationRef, {
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              timestamp: Date.now(),
             });
           } catch (error) {
-            console.error("Error updating location:", error);
+            console.error("Error updating driver location:", error);
           }
         },
         (error) => console.error("Error getting location:", error),
@@ -73,7 +106,15 @@ function HomeCarOwner() {
     }
 
     return () => {
-      if (watchId) navigator.geolocation.clearWatch(watchId);
+      if (watchId) {
+        navigator.geolocation.clearWatch(watchId);
+        // Remove the location when ride ends
+        const locationRef = ref(
+          database,
+          `driverLocations/${rideData.driverId}`
+        );
+        remove(locationRef);
+      }
     };
   }, [rideData?.rideStarted]);
 

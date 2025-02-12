@@ -32,6 +32,7 @@ import { handleOpenWhastApp } from "../helpers/helperFunctions";
 import RideTrackingMap2 from "../components/inputs/RideTrackingMap2";
 import { arrayRemove, doc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase-config";
+import RideTrackingMap3 from "../components/inputs/RideTrackingMap3";
 
 const style = {
   position: "absolute",
@@ -220,7 +221,7 @@ const RideDetails = (props) => {
                 render={render}
                 apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
               >
-                <RideTrackingMap2
+                <RideTrackingMap3
                   setEstimatedTime={setEstimatedTime}
                   setCalculatedDistance={setCalculatedDistance}
                   rideData={rideData}
