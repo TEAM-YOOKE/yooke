@@ -303,9 +303,9 @@ const RideCard = ({
               alignItems="center"
             >
               <GroupsIcon fontSize="small" color="disabled" />
-              {ride.driver.slots ? (
+              {ride?.driver?.slots ? (
                 <Typography fontSize="12px">
-                  {ride.passengers.length}/{ride.driver.slots}
+                  {ride?.passengers?.length}/{ride?.driver?.slots}
                 </Typography>
               ) : (
                 <Typography fontSize="12px">N/A</Typography>
@@ -341,14 +341,15 @@ const RideCard = ({
                 disabled={
                   loading ||
                   disableAllButtons ||
-                  (ride.passengers.length >= ride.driver.slots && !isPassenger)
+                  (ride?.passengers?.length >= ride?.driver?.slots &&
+                    !isPassenger)
                 }
               >
                 {loading
                   ? "Loading..."
                   : isPassenger
                   ? "Exit Ride"
-                  : ride.passengers.length >= ride.driver.slots
+                  : ride?.passengers?.length >= ride?.driver?.slots
                   ? "Ride full"
                   : "Join Ride"}
               </Button>
