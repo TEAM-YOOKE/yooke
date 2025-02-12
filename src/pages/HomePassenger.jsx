@@ -259,7 +259,7 @@ function HomePassenger() {
         and the car owner!
       </Alert>
 
-      {rideData?.rideStarted && rideData?.going.includes(currentUser?.id) && (
+      {rideData?.rideStarted && rideData?.going?.includes(currentUser?.id) && (
         <Box
           sx={{
             position: "absolute",

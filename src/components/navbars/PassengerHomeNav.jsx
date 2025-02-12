@@ -289,7 +289,7 @@ const PassengerHomeNav = () => {
               sx={{
                 border:
                   rideData?.rideStarted &&
-                  rideData?.going.includes(currentUser?.id)
+                  rideData?.going?.includes(currentUser?.id)
                     ? "2px solid rgba(220, 230, 228, 0.74)"
                     : "2px solid #22CEA6",
                 borderRadius: "20px",
@@ -297,7 +297,7 @@ const PassengerHomeNav = () => {
               onClick={() => {
                 if (
                   rideData?.rideStarted &&
-                  rideData?.going.includes(currentUser?.id)
+                  rideData?.going?.includes(currentUser?.id)
                 )
                   return;
                 setOpenSetAddress(true);
@@ -309,7 +309,7 @@ const PassengerHomeNav = () => {
                   fontSize={"12px"}
                   color={
                     rideData?.rideStarted &&
-                    rideData?.going.includes(currentUser?.id)
+                    rideData?.going?.includes(currentUser?.id)
                       ? "rgba(220, 230, 228, 0.74)"
                       : !currentUser?.pickUpLocation
                       ? "red"
@@ -324,7 +324,7 @@ const PassengerHomeNav = () => {
                   fontSize={"16px"}
                   color={
                     rideData?.rideStarted &&
-                    rideData?.going.includes(currentUser?.id)
+                    rideData?.going?.includes(currentUser?.id)
                       ? "rgba(153, 158, 157, 0.74)"
                       : !currentUser?.pickUpLocation && "red"
                   }
@@ -339,7 +339,7 @@ const PassengerHomeNav = () => {
                 sx={{
                   color:
                     rideData?.rideStarted &&
-                    rideData?.going.includes(currentUser?.id)
+                    rideData?.going?.includes(currentUser?.id)
                       ? "rgba(220, 230, 228, 0.74)"
                       : "info.main",
                 }}
@@ -433,25 +433,26 @@ const PassengerHomeNav = () => {
             )}
           </Grid>
         </Box>
-        {rideData?.rideStarted && rideData?.going.includes(currentUser?.id) && (
-          <Button
-            sx={{
-              bgcolor: "green",
+        {rideData?.rideStarted &&
+          rideData?.going?.includes(currentUser?.id) && (
+            <Button
+              sx={{
+                bgcolor: "green",
 
-              color: "white",
-              p: 1,
-              display: "flex",
-              justifyContent: "center",
-              gap: 4,
-              borderRadius: 0,
-              textTransform: "none",
-            }}
-            onClick={() => setOpenRideDetails(true)}
-          >
-            Ride Started
-            <EastIcon />
-          </Button>
-        )}
+                color: "white",
+                p: 1,
+                display: "flex",
+                justifyContent: "center",
+                gap: 4,
+                borderRadius: 0,
+                textTransform: "none",
+              }}
+              onClick={() => setOpenRideDetails(true)}
+            >
+              Ride Started
+              <EastIcon />
+            </Button>
+          )}
       </AppBar>
       <Toolbar
         sx={{

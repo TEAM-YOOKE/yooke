@@ -93,25 +93,26 @@ const ConnectionsPassenger = () => {
           </Typography>
           <PassengerConnectionsNav value={tabValue} setValue={setTabValue} />
         </Box>
-        {rideData?.rideStarted && rideData?.going.includes(currentUser?.id) && (
-          <Button
-            sx={{
-              bgcolor: "green",
+        {rideData?.rideStarted &&
+          rideData?.going?.includes(currentUser?.id) && (
+            <Button
+              sx={{
+                bgcolor: "green",
 
-              color: "white",
-              p: 1,
-              display: "flex",
-              justifyContent: "center",
-              gap: 4,
-              borderRadius: 0,
-              textTransform: "none",
-            }}
-            onClick={handleOpenRideDetails}
-          >
-            Ride Started
-            <EastIcon />
-          </Button>
-        )}
+                color: "white",
+                p: 1,
+                display: "flex",
+                justifyContent: "center",
+                gap: 4,
+                borderRadius: 0,
+                textTransform: "none",
+              }}
+              onClick={handleOpenRideDetails}
+            >
+              Ride Started
+              <EastIcon />
+            </Button>
+          )}
       </AppBar>
       <Container>
         {tabValue === 0 ? (
