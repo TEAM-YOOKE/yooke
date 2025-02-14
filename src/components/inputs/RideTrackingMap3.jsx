@@ -1,7 +1,8 @@
 import { Box } from "@mui/material";
 import React, { useEffect, useRef, useState } from "react";
-import { ref, onValue, set } from "firebase/database"; // Firebase Realtime Database
+import { ref, onValue } from "firebase/database"; // Firebase Realtime Database
 import { database } from "../../firebase-config";
+
 const mapStyles = [
   {
     featureType: "poi",
@@ -28,14 +29,16 @@ const RideTrackingMap3 = ({
 }) => {
   const mapRef = useRef(null);
   const driverMarkerRef = useRef(null);
+  const passengerMarkerRef = useRef(null);
   const directionsRendererRef = useRef(null);
   const [map, setMap] = useState(null);
 
-  const loadMap = (center) => {
-    if (!mapRef.current) return;
+  // Initialize the map
+  useEffect(() => {
+    if (!mapRef.current || map) return;
 
     const newMap = new window.google.maps.Map(mapRef.current, {
-      center,
+      center: { lat: 0, lng: 0 }, // Default center (updates when driver location is available)
       zoom: 16,
       gestureHandling: "greedy",
       disableDefaultUI: true,
@@ -44,38 +47,53 @@ const RideTrackingMap3 = ({
     });
 
     setMap(newMap);
-    return newMap;
-  };
+  }, []);
 
-  const addMarkers = (driverLoc, passengerLoc, map) => {
+  // Function to add markers
+  const addMarkers = (driverLoc, passengerLoc) => {
     if (!map) return;
 
     // Driver Marker
-    driverMarkerRef.current = new window.google.maps.Marker({
-      position: driverLoc,
-      icon: {
-        url: "/car-location.png",
-        scaledSize: new window.google.maps.Size(40, 40),
-      },
-      map,
-    });
+    if (!driverMarkerRef.current) {
+      driverMarkerRef.current = new window.google.maps.Marker({
+        position: driverLoc,
+        icon: {
+          url: "/car-location.png",
+          scaledSize: new window.google.maps.Size(40, 40),
+        },
+        map,
+      });
+    } else {
+      driverMarkerRef.current.setPosition(driverLoc);
+    }
 
-    // Passenger Marker
-    new window.google.maps.Marker({
-      position: passengerLoc,
-      icon: { url: "/pin2.png" },
-      map,
-    });
+    // Passenger Marker (Only created once)
+    if (!passengerMarkerRef.current) {
+      passengerMarkerRef.current = new window.google.maps.Marker({
+        position: passengerLoc,
+        icon: {
+          url: "/pin2.png",
+          // scaledSize: new window.google.maps.Size(40, 40),
+        },
+        map,
+      });
+    }
   };
 
+  // Function to update driver location
   const updateDriverLocation = (newDriverLoc) => {
     if (driverMarkerRef.current) {
       driverMarkerRef.current.setPosition(newDriverLoc);
     }
   };
 
-  const loadDirections = (driverLoc, passengerLoc, map) => {
+  // Function to load/update directions
+  const loadDirections = (driverLoc, passengerLoc) => {
     if (!map) return;
+
+    if (directionsRendererRef.current) {
+      directionsRendererRef.current.setMap(null); // Clear previous route
+    }
 
     const directionsService = new window.google.maps.DirectionsService();
     const directionsRenderer = new window.google.maps.DirectionsRenderer({
@@ -110,49 +128,29 @@ const RideTrackingMap3 = ({
       });
   };
 
+  // Listen for driver location updates
   useEffect(() => {
-    if (!rideData?.driverLiveLocation) {
-      console.error("Driver live location is missing.");
-      return;
-    }
-
-    const driverLoc = {
-      lat: rideData.driverLiveLocation.latitude,
-      lng: rideData.driverLiveLocation.longitude,
-    };
-
-    const passengerLoc = currentUser?.pickUpLocation?.pinLocation;
-
-    if (passengerLoc?.lat && passengerLoc?.lng) {
-      if (!map) {
-        const newMap = loadMap(driverLoc);
-        setMap(newMap);
-
-        addMarkers(driverLoc, passengerLoc, newMap);
-        loadDirections(driverLoc, passengerLoc, newMap);
-      }
-    }
-  }, [rideData]);
-
-  useEffect(() => {
-    if (!rideData?.driverId) return;
+    if (!rideData?.driverId || !map) return;
 
     const driverRef = ref(database, `driverLocations/${rideData.driverId}`);
 
     const unsubscribe = onValue(driverRef, (snapshot) => {
       const data = snapshot.val();
-      if (data?.latitude && data?.longitude) {
-        const newDriverLoc = { lat: data.latitude, lng: data.longitude };
 
-        updateDriverLocation(newDriverLoc);
+      const driverLoc = {
+        lat: data?.latitude || rideData.driverLiveLocation?.latitude || 0,
+        lng: data?.longitude || rideData.driverLiveLocation?.longitude || 0,
+      };
 
-        if (map && directionsRendererRef.current) {
-          loadDirections(
-            newDriverLoc,
-            currentUser?.pickUpLocation?.pinLocation,
-            map
-          );
+      const passengerLoc = currentUser?.pickUpLocation?.pinLocation;
+
+      if (passengerLoc?.lat && passengerLoc?.lng) {
+        if (!driverMarkerRef.current || !passengerMarkerRef.current) {
+          addMarkers(driverLoc, passengerLoc);
+        } else {
+          updateDriverLocation(driverLoc);
         }
+        loadDirections(driverLoc, passengerLoc);
       }
     });
 

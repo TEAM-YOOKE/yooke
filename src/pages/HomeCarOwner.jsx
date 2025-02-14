@@ -96,6 +96,13 @@ function HomeCarOwner() {
               longitude: position.coords.longitude,
               timestamp: Date.now(),
             });
+            const rideDocRef = doc(db, "rides", rideData.id);
+            await updateDoc(rideDocRef, {
+              driverLiveLocation: {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+              },
+            });
           } catch (error) {
             console.error("Error updating driver location:", error);
           }
