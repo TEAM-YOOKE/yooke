@@ -1,6 +1,7 @@
 import React from "react";
 import RideHistoryCard from "../components/cards/HistoryCard";
 import { Box } from "@mui/material";
+import useUserTrips from "../hooks/userTrips";
 
 const trips = [
   {
@@ -58,6 +59,8 @@ const trips = [
 ];
 
 const History = () => {
+  const { trips, tripsLoading, tripsError, refreshTrips } = useUserTrips();
+  console.log(trips);
   return (
     <Box display="flex" flexDirection="column" gap={2} my={2}>
       {trips &&

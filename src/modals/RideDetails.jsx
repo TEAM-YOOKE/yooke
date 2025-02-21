@@ -30,7 +30,15 @@ import RideTrackingMap from "../components/inputs/RideTrackingMap";
 import useCurrentUserDoc from "../hooks/currentUserDoc";
 import { handleOpenWhastApp } from "../helpers/helperFunctions";
 import RideTrackingMap2 from "../components/inputs/RideTrackingMap2";
-import { arrayRemove, doc, updateDoc } from "firebase/firestore";
+import {
+  arrayRemove,
+  doc,
+  updateDoc,
+  setDoc,
+  serverTimestamp,
+  addDoc,
+  collection,
+} from "firebase/firestore";
 import { db } from "../firebase-config";
 import RideTrackingMap3 from "../components/inputs/RideTrackingMap3";
 
@@ -76,6 +84,7 @@ const RideDetails = (props) => {
   const [estimatedTime, setEstimatedTime] = useState(0);
   const [calculatedDistance, setCalculatedDistance] = useState(0);
   const [cancelTripLoading, setCancelTRipLoading] = useState(false);
+  const [inCar, setInCar] = useState(false);
   const containerRef = React.useRef(null);
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -110,6 +119,51 @@ const RideDetails = (props) => {
       });
     } finally {
       setCancelTRipLoading(false);
+    }
+  };
+
+  const handleGetInCar = async () => {
+    // if (calculatedDistance > 5) {
+    //   window.alert("Driver is not close to you");
+    //   return;
+    // }
+    if (!window.confirm("Are you sure you want to get in the car?")) return;
+
+    try {
+      const tripData = {
+        rideId: rideData?.rideId || "",
+        passengerId: currentUser?.id || "",
+        driverId: rideData?.driverId || "",
+        status: "ongoing",
+        startedAt: serverTimestamp(),
+        endedAt: null,
+        pickUpLocation: currentUser?.pickUpLocation || {},
+        dropOffLocation: null,
+        driverInfo: {
+          name: rideData?.driverData?.username || "",
+          phoneNumber: rideData?.driverData?.whatsappNumber || "",
+          carModel: rideData?.car?.name || "",
+          carPlate: rideData?.car?.plate || "",
+        },
+      };
+
+      // Create a new trip document in Firestore
+      const tripRef = await addDoc(collection(db, "trips"), tripData);
+      await setDoc(tripRef, tripData);
+      setInCar(true);
+
+      setSnackbar({
+        open: true,
+        message: "Trip started successfully",
+        severity: "success",
+      });
+    } catch (error) {
+      console.log("Error Getting in car:", error);
+      setSnackbar({
+        open: true,
+        message: "Error starting trip",
+        severity: "error",
+      });
     }
   };
 
@@ -393,8 +447,10 @@ const RideDetails = (props) => {
                           alignSelf: "left",
                         }}
                         fullWidth={false}
+                        onClick={handleGetInCar}
+                        // disabled={calculatedDistance > 5}
                       >
-                        Get In
+                        {inCar ? "Get Out" : "Get In"}
                       </Button>
                     </Box>
                   </Box>

@@ -94,14 +94,19 @@ const RideTrackingMap3 = ({
 
       if (previousLocation) {
         headingAngle = getBearing(previousLocation, newDriverLoc);
+        console.log(headingAngle);
       }
 
       // Update marker position and rotation
       driverMarkerRef.current.setPosition(newDriverLoc);
       driverMarkerRef.current.setIcon({
-        url: "/car-location.png",
-        scaledSize: new google.maps.Size(40, 40),
-        anchor: new google.maps.Point(20, 20), // Center the rotation
+        // url: "/car-location.png",
+        path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+        strokeColor: "#FF0000",
+        scale: 5,
+
+        // scaledSize: new google.maps.Size(40, 40),
+        // anchor: new google.maps.Point(20, 20), // Center the rotation
         rotation: headingAngle, // Rotate car
       });
 
@@ -156,7 +161,7 @@ const RideTrackingMap3 = ({
 
         if (response.routes[0]?.legs[0]) {
           const leg = response.routes[0].legs[0];
-          setCalculatedDistance?.(leg.distance.text);
+          setCalculatedDistance?.(leg.distance.value);
           setEstimatedTime?.(leg.duration.text);
         }
       })
