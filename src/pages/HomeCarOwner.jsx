@@ -86,6 +86,8 @@ function HomeCarOwner() {
     if (rideData?.rideStarted) {
       watchId = navigator.geolocation.watchPosition(
         async (position) => {
+          const heading = position.coords; // Degrees relative to true north
+          console.log("GPS Heading:", heading);
           try {
             const locationRef = ref(
               database,
