@@ -57,9 +57,14 @@ const RideTrackingMap3 = ({
     if (!driverMarkerRef.current) {
       driverMarkerRef.current = new window.google.maps.Marker({
         position: driverLoc,
+        // icon: {
+        //   url: "/car-location.png",
+        //   scaledSize: new window.google.maps.Size(40, 40),
+        // },
         icon: {
-          url: "/car-location.png",
-          scaledSize: new window.google.maps.Size(40, 40),
+          path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+          scale: 5,
+          strokeColor: "#FF0000",
         },
         map,
       });
@@ -81,10 +86,42 @@ const RideTrackingMap3 = ({
   };
 
   // Function to update driver location
+  let previousLocation = null; // Store previous driver location
+
   const updateDriverLocation = (newDriverLoc) => {
     if (driverMarkerRef.current) {
+      let headingAngle = 0; // Default angle
+
+      if (previousLocation) {
+        headingAngle = getBearing(previousLocation, newDriverLoc);
+      }
+
+      // Update marker position and rotation
       driverMarkerRef.current.setPosition(newDriverLoc);
+      driverMarkerRef.current.setIcon({
+        url: "/car-location.png",
+        scaledSize: new google.maps.Size(40, 40),
+        anchor: new google.maps.Point(20, 20), // Center the rotation
+        rotation: headingAngle, // Rotate car
+      });
+
+      // Update previous location
+      previousLocation = newDriverLoc;
     }
+  };
+  // Function to calculate bearing angle
+  const getBearing = (start, end) => {
+    const lat1 = (Math.PI / 180) * start.lat;
+    const lat2 = (Math.PI / 180) * end.lat;
+    const deltaLng = (Math.PI / 180) * (end.lng - start.lng);
+
+    const y = Math.sin(deltaLng) * Math.cos(lat2);
+    const x =
+      Math.cos(lat1) * Math.sin(lat2) -
+      Math.sin(lat1) * Math.cos(lat2) * Math.cos(deltaLng);
+    const bearing = (Math.atan2(y, x) * 180) / Math.PI;
+
+    return (bearing + 360) % 360; // Convert to 0-360 degrees
   };
 
   // Function to load/update directions
