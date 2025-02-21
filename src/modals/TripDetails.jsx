@@ -108,7 +108,10 @@ const TripDetails = ({ onClose, open, trip }) => {
                             }}
                           />
                           <Typography variant="body1" fontSize="14px">
-                            {trip.origin}
+                            {
+                              trip.pickUpLocation.address.structured_formatting
+                                .main_text
+                            }
                           </Typography>
                         </Box>
 
@@ -127,7 +130,9 @@ const TripDetails = ({ onClose, open, trip }) => {
                           />
 
                           <Typography variant="body1" fontSize="14px">
-                            {trip.destination}
+                            {trip.status === "ongoing"
+                              ? "on-going"
+                              : trip?.dropOffLocation}
                           </Typography>
                         </Box>
                       </Box>
@@ -158,7 +163,14 @@ const TripDetails = ({ onClose, open, trip }) => {
                               fontSize="14px"
                               fontWeight={500}
                             >
-                              {trip.date}
+                              {new Date(
+                                trip.startedAt.seconds * 1000
+                              ).toLocaleDateString("en-US", {
+                                weekday: "long",
+                                // year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              })}
                             </Typography>
                           </Box>
                         </Grid>
@@ -182,7 +194,9 @@ const TripDetails = ({ onClose, open, trip }) => {
                               fontSize="14px"
                               fontWeight={500}
                             >
-                              {trip.duration}
+                              {trip.status === "ongoing"
+                                ? "on-going"
+                                : trip.duration}
                             </Typography>
                           </Box>
                         </Grid>
@@ -211,7 +225,12 @@ const TripDetails = ({ onClose, open, trip }) => {
                               fontSize="14px"
                               fontWeight={500}
                             >
-                              {trip.pickUpTime}
+                              {new Date(
+                                trip.startedAt.seconds * 1000
+                              ).toLocaleTimeString("en-US", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
                             </Typography>
                           </Box>
                         </Grid>
@@ -235,7 +254,9 @@ const TripDetails = ({ onClose, open, trip }) => {
                               fontSize="14px"
                               fontWeight={500}
                             >
-                              {trip.dropOffTime}
+                              {trip.status === "ongoing"
+                                ? "on-going"
+                                : trip.startedAt}
                             </Typography>
                           </Box>
                         </Grid>
@@ -264,7 +285,7 @@ const TripDetails = ({ onClose, open, trip }) => {
                           >
                             Name:{" "}
                           </Typography>
-                          {trip.driver.name}
+                          {trip.driverInfo.name}
                         </Typography>
                         <Divider
                           sx={{ my: 2, borderBottom: "1px solid #e3e3e4" }}
@@ -277,7 +298,7 @@ const TripDetails = ({ onClose, open, trip }) => {
                           >
                             Car model:{" "}
                           </Typography>
-                          {trip.driver.carModel}
+                          {trip.driverInfo.carModel}
                         </Typography>
                         <Divider
                           sx={{ my: 2, borderBottom: "1px solid #e3e3e4" }}
@@ -290,7 +311,7 @@ const TripDetails = ({ onClose, open, trip }) => {
                           >
                             License plate:{" "}
                           </Typography>
-                          {trip.driver.plate}
+                          {trip.driverInfo.carPlate}
                         </Typography>
                         <Divider
                           sx={{ my: 2, borderBottom: "1px solid #e3e3e4" }}

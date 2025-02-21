@@ -24,7 +24,9 @@ const RideHistoryCard = ({ trip }) => {
               <TripOriginIcon
                 sx={{ fontSize: 15, color: "green", marginRight: 1 }}
               />
-              <Typography variant="body1">{trip.origin}</Typography>
+              <Typography variant="body1">
+                {trip.pickUpLocation.address.structured_formatting.main_text}
+              </Typography>
             </Box>
 
             <Box
@@ -41,7 +43,9 @@ const RideHistoryCard = ({ trip }) => {
                 sx={{ fontSize: 15, color: "red", marginRight: 1 }}
               />
 
-              <Typography variant="body1">{trip.destination}</Typography>
+              <Typography variant="body1">
+                {trip.status === "ongoing" ? "on-going" : trip?.dropOffLocation}
+              </Typography>
             </Box>
           </Box>
 
@@ -50,7 +54,15 @@ const RideHistoryCard = ({ trip }) => {
             <Box display="flex" alignItems="center">
               <EventIcon sx={{ fontSize: 18, marginRight: 1, color: "gray" }} />
               <Typography variant="body2" fontWeight="bold">
-                {trip.date}
+                {new Date(trip.startedAt.seconds * 1000).toLocaleDateString(
+                  "en-US",
+                  {
+                    weekday: "long",
+                    // year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  }
+                )}
               </Typography>
             </Box>
 
@@ -59,7 +71,13 @@ const RideHistoryCard = ({ trip }) => {
                 sx={{ fontSize: 18, marginRight: 1, color: "gray" }}
               />
               <Typography variant="body2" fontWeight="bold">
-                {trip.pickUpTime}
+                {new Date(trip.startedAt.seconds * 1000).toLocaleTimeString(
+                  "en-US",
+                  {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }
+                )}
               </Typography>
             </Box>
           </Box>
