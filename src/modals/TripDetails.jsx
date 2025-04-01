@@ -108,10 +108,12 @@ const TripDetails = ({ onClose, open, trip }) => {
                             }}
                           />
                           <Typography variant="body1" fontSize="14px">
-                            {
-                              trip.pickUpLocation.address.structured_formatting
-                                .main_text
-                            }
+                            {trip.pickUpLocation &&
+                            trip.pickUpLocation.address &&
+                            trip.pickUpLocation.address.structured_formatting
+                              ? trip.pickUpLocation.address
+                                  .structured_formatting.main_text
+                              : "Pick-up location"}
                           </Typography>
                         </Box>
 
@@ -132,7 +134,12 @@ const TripDetails = ({ onClose, open, trip }) => {
                           <Typography variant="body1" fontSize="14px">
                             {trip.status === "ongoing"
                               ? "on-going"
-                              : trip?.dropOffLocation}
+                              : typeof trip?.dropOffLocation === "object"
+                              ? trip?.dropOffLocation?.address
+                                  ?.structured_formatting?.main_text ||
+                                trip?.dropOffLocation?.address?.description ||
+                                "Destination"
+                              : trip?.dropOffLocation || "Destination"}
                           </Typography>
                         </Box>
                       </Box>
@@ -163,14 +170,15 @@ const TripDetails = ({ onClose, open, trip }) => {
                               fontSize="14px"
                               fontWeight={500}
                             >
-                              {new Date(
-                                trip.startedAt.seconds * 1000
-                              ).toLocaleDateString("en-US", {
-                                weekday: "long",
-                                // year: "numeric",
-                                month: "short",
-                                day: "numeric",
-                              })}
+                              {trip.startedAt && trip.startedAt.seconds
+                                ? new Date(
+                                    trip.startedAt.seconds * 1000
+                                  ).toLocaleDateString("en-US", {
+                                    weekday: "long",
+                                    month: "short",
+                                    day: "numeric",
+                                  })
+                                : "N/A"}
                             </Typography>
                           </Box>
                         </Grid>
@@ -225,12 +233,14 @@ const TripDetails = ({ onClose, open, trip }) => {
                               fontSize="14px"
                               fontWeight={500}
                             >
-                              {new Date(
-                                trip.startedAt.seconds * 1000
-                              ).toLocaleTimeString("en-US", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
+                              {trip.startedAt && trip.startedAt.seconds
+                                ? new Date(
+                                    trip.startedAt.seconds * 1000
+                                  ).toLocaleTimeString("en-US", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })
+                                : "N/A"}
                             </Typography>
                           </Box>
                         </Grid>
@@ -256,7 +266,14 @@ const TripDetails = ({ onClose, open, trip }) => {
                             >
                               {trip.status === "ongoing"
                                 ? "on-going"
-                                : trip.startedAt}
+                                : trip.endedAt && trip.endedAt.seconds
+                                ? new Date(
+                                    trip.endedAt.seconds * 1000
+                                  ).toLocaleTimeString("en-US", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })
+                                : "N/A"}
                             </Typography>
                           </Box>
                         </Grid>
