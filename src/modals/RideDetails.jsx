@@ -38,9 +38,14 @@ import {
   serverTimestamp,
   addDoc,
   collection,
+  query,
+  where,
+  getDocs,
+  getDoc,
 } from "firebase/firestore";
 import { db } from "../firebase-config";
 import RideTrackingMap3 from "../components/inputs/RideTrackingMap3";
+import useUserTrips from "../hooks/userTrips";
 
 const style = {
   position: "absolute",
@@ -80,9 +85,11 @@ const RideDetails = (props) => {
     rideData,
     rideDataLoading,
   } = useCurrentUserDoc();
+  const { refreshTrips } = useUserTrips();
   const [loading, setLoading] = useState(false);
   const [estimatedTime, setEstimatedTime] = useState(0);
   const [calculatedDistance, setCalculatedDistance] = useState(0);
+  const [tripId, setTripId] = useState(null);
   const [cancelTripLoading, setCancelTRipLoading] = useState(false);
   const [inCar, setInCar] = useState(false);
   const containerRef = React.useRef(null);
@@ -94,16 +101,54 @@ const RideDetails = (props) => {
 
   const handleCancelTrip = async () => {
     if (!window.confirm("Are you sure you want to cancel this trip?")) return;
+
     setCancelTRipLoading(true);
     try {
+      // First, check if there's an ongoing trip for this ride
+      const tripsRef = collection(db, "trips");
+      let tripToCancel = null;
+
+      // If we have a stored tripId, use it directly
+      if (tripId) {
+        tripToCancel = tripId;
+      } else {
+        // Otherwise, query for the active trip
+        const q = query(
+          tripsRef,
+          where("passengerId", "==", currentUser?.id),
+          where("rideId", "==", rideData?.id),
+          where("status", "==", "ongoing")
+        );
+
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          tripToCancel = querySnapshot.docs[0].id;
+        }
+      }
+
+      // If we found an ongoing trip, update it to cancelled
+      if (tripToCancel) {
+        const tripRef = doc(db, "trips", tripToCancel);
+        await updateDoc(tripRef, {
+          status: "cancelled",
+          endedAt: serverTimestamp(),
+        });
+
+        // Reset the inCar state
+        setInCar(false);
+        setTripId(null);
+      }
+
+      // Always update the ride document to remove the user
       const rideRef = doc(db, "rides", rideData.id);
       await updateDoc(rideRef, {
         going: arrayRemove(currentUser.id),
       });
+
+      // Update trip history with real-time listener
+      refreshTrips();
+
       props.onClose();
-      // await refreshRides();
-      // await refreshCurrentUserDoc();
-      // await refreshRideData();
 
       setSnackbar({
         open: true,
@@ -123,15 +168,12 @@ const RideDetails = (props) => {
   };
 
   const handleGetInCar = async () => {
-    // if (calculatedDistance > 5) {
-    //   window.alert("Driver is not close to you");
-    //   return;
-    // }
     if (!window.confirm("Are you sure you want to get in the car?")) return;
 
+    setLoading(true);
     try {
       const tripData = {
-        rideId: rideData?.rideId || "",
+        rideId: rideData?.id || "",
         passengerId: currentUser?.id || "",
         driverId: rideData?.driverId || "",
         status: "ongoing",
@@ -149,7 +191,8 @@ const RideDetails = (props) => {
 
       // Create a new trip document in Firestore
       const tripRef = await addDoc(collection(db, "trips"), tripData);
-      await setDoc(tripRef, tripData);
+      // Store the trip ID for later use
+      setTripId(tripRef.id);
       setInCar(true);
 
       setSnackbar({
@@ -164,6 +207,179 @@ const RideDetails = (props) => {
         message: "Error starting trip",
         severity: "error",
       });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGetOutCar = async () => {
+    if (!window.confirm("Are you sure you want to end this trip?")) return;
+
+    setLoading(true);
+    try {
+      // Get current location for drop-off
+      let dropOffLocation = null;
+      let formattedAddress = "Destination";
+
+      if (navigator.geolocation) {
+        // Get current position for drop-off location
+        await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(
+            async (position) => {
+              const { latitude, longitude } = position.coords;
+
+              // Create location object
+              dropOffLocation = {
+                lat: latitude,
+                lng: longitude,
+              };
+
+              // Try to get address from coordinates using geocoder
+              const geocoder = new window.google.maps.Geocoder();
+              try {
+                const response = await new Promise((resolve, reject) => {
+                  geocoder.geocode(
+                    { location: { lat: latitude, lng: longitude } },
+                    (results, status) => {
+                      if (status === "OK" && results[0]) {
+                        resolve(results[0]);
+                      } else {
+                        reject(new Error("Geocoding failed"));
+                      }
+                    }
+                  );
+                });
+
+                // Store formatted address separately
+                formattedAddress = response.formatted_address;
+
+                // Create address object structure similar to pickUpLocation
+                dropOffLocation.address = {
+                  description: formattedAddress,
+                  structured_formatting: {
+                    main_text: formattedAddress.split(",")[0],
+                    secondary_text: formattedAddress
+                      .split(",")
+                      .slice(1)
+                      .join(",")
+                      .trim(),
+                  },
+                };
+              } catch (error) {
+                console.log("Error getting address:", error);
+                // Create a default address structure if geocoding fails
+                dropOffLocation.address = {
+                  description: "Destination",
+                  structured_formatting: {
+                    main_text: "Destination",
+                    secondary_text: "",
+                  },
+                };
+              }
+
+              resolve();
+            },
+            (error) => {
+              console.error("Error getting current position:", error);
+              reject(error);
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+          );
+        });
+      }
+
+      // Find the active trip for this passenger and ride
+      let tripToUpdate;
+
+      if (tripId) {
+        // If we have the trip ID stored, use it directly
+        tripToUpdate = tripId;
+      } else {
+        // Otherwise, query for the active trip
+        const tripsRef = collection(db, "trips");
+        const q = query(
+          tripsRef,
+          where("passengerId", "==", currentUser?.id),
+          where("rideId", "==", rideData?.id),
+          where("status", "==", "ongoing")
+        );
+
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          tripToUpdate = querySnapshot.docs[0].id;
+        } else {
+          throw new Error("No active trip found");
+        }
+      }
+
+      // Calculate trip duration
+      const tripRef = doc(db, "trips", tripToUpdate);
+      const tripDoc = await getDoc(tripRef);
+
+      if (tripDoc.exists()) {
+        const tripData = tripDoc.data();
+        const startTime = tripData.startedAt.toDate();
+        const endTime = new Date();
+        const durationMs = endTime - startTime;
+
+        // Format duration as string (e.g., "45 min" or "1 hr 15 min")
+        const minutes = Math.floor(durationMs / 60000);
+        const hours = Math.floor(minutes / 60);
+        const remainingMinutes = minutes % 60;
+
+        let durationText = "";
+        if (hours > 0) {
+          durationText = `${hours} hr${
+            hours > 1 ? "s" : ""
+          } ${remainingMinutes} min`;
+        } else {
+          durationText = `${minutes} min`;
+        }
+
+        // Update the trip document
+        await updateDoc(tripRef, {
+          status: "completed",
+          endedAt: serverTimestamp(),
+          dropOffLocation: formattedAddress, // Store only the formatted address string
+          dropOffLocationData: dropOffLocation, // Store the full location object separately
+          duration: durationText,
+        });
+
+        // If this ride has a ride document, update its state as well
+        if (rideData?.id) {
+          const rideRef = doc(db, "rides", rideData.id);
+          await updateDoc(rideRef, {
+            rideStarted: false,
+          });
+        }
+      }
+
+      // Reset states
+      setInCar(false);
+      setTripId(null);
+
+      // Update trip history with real-time listener
+      refreshTrips();
+
+      setSnackbar({
+        open: true,
+        message: "Trip completed successfully",
+        severity: "success",
+      });
+
+      // Close the modal after successful completion
+      setTimeout(() => {
+        props.onClose();
+      }, 1500);
+    } catch (error) {
+      console.log("Error getting out of car:", error);
+      setSnackbar({
+        open: true,
+        message: "Error completing trip: " + error.message,
+        severity: "error",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -447,8 +663,9 @@ const RideDetails = (props) => {
                           alignSelf: "left",
                         }}
                         fullWidth={false}
-                        onClick={handleGetInCar}
+                        onClick={inCar ? handleGetOutCar : handleGetInCar}
                         // disabled={calculatedDistance > 5}
+                        disabled={loading}
                       >
                         {inCar ? "Get Out" : "Get In"}
                       </Button>
